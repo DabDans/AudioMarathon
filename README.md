@@ -45,7 +45,7 @@
 **AudioMarathon** is a comprehensive benchmark designed to evaluate Audio Large Language Models (Audio-LLMs) on long-form audio understanding tasks. This repository contains the evaluation code and tools for testing various state-of-the-art audio-language models across multiple challenging tasks.
 
 <div align="center">
-  <img src="./QA_exp.png" alt="AudioMarathon Qualitative Examples" width="100%">
+  <img src="./assets/QA_exp.png" alt="AudioMarathon Qualitative Examples" width="100%">
 </div>
 
 ### Key Features
@@ -88,7 +88,7 @@ AudioMarathon evaluates models across the following task categories with 6,563 s
 ## Pipeline
 ### Data Consturction Pipeline
 <div align="center">
-  <img src="./AudioMarathon_05.png" alt="Data Construction Pipeline" width="100%">
+  <img src="./assets/AudioMarathon_05.png" alt="Data Construction Pipeline" width="100%">
 </div>
 
 ## 🏗️ Repository Structure
@@ -291,7 +291,7 @@ Each script tracks detailed timing metrics:
 ## Visible Results
 ### Rader Chart
 <div align="center">
-  <img src="./radar_figure.png" alt="Rader Chart" width="100%">
+  <img src="./assets/radar_figure.png" alt="Rader Chart" width="100%">
 </div>
 
 
