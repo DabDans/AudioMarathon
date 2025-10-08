@@ -340,7 +340,7 @@ If you use AudioMarathon in your research, please cite:
 
 For questions or issues, please:
 - Open an issue on GitHub
-- Contact: your.email@example.com
+- Contact: 1006803978@qq.com
 
 ## 🙏 Acknowledgments
 
