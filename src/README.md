@@ -8,12 +8,12 @@ The `Modeling/` folder contains the main model-level modifications. When importi
 
 - **FastV, Random, Frame methods**: Use `modeling_qwen2_5_omni_fastv.py`
   ```python
-  from Modeling.modeling_qwen2_5_omni_fastv import Qwen25OmniForConditionalGeneration
+  from Modeling.modeling_qwen2_5_omni_fastv import Qwen2_5OmniForConditionalGeneration
   ```
 
 - **DART method**: Use `modeling_qwen2_5_omni_dart.py`
   ```python
-  from Modeling.modeling_qwen2_5_omni_dart import Qwen25OmniForConditionalGeneration
+  from Modeling.modeling_qwen2_5_omni_dart import Qwen2_5OmniForConditionalGeneration
   ```
 
 ### Phi-4 Model
