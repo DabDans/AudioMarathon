@@ -38,7 +38,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/DabDans/AudioMarathon?style=social)](https://github.com/DabDans/AudioMarathon/stargazers)
 </div>
 
----
+
 
 ## 📑 Table of Contents
 
@@ -61,7 +61,6 @@
 **Quick Links:** 
 [🏆 View Leader Board](#leader-board) | [📊 View Results](#visible-results) | [🚀 Get Started](#-quick-start) 
 
----
 
 ## 📖 Overview
 
@@ -460,6 +459,9 @@ HAD/
 ## 📄 Citation
 
 If you use AudioMarathon in your research, please cite:
+```bibtex
+
+```
 
 
 ## 📧 Contact
