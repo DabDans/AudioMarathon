@@ -1,122 +1,367 @@
-# src Directory Description
+# AudioMarathon: Long-Form Audio Understanding Benchmark
 
-This directory contains scripts for multi-dataset multimodal (primarily audio) evaluation and method comparison, based on different inference/sparse strategies of the **Qwen2.5-Omni** model, along with several auxiliary analysis tools and result files.
 
-## Directory Overview
+
+## 📖 Overview
+
+**AudioMarathon** is a comprehensive benchmark designed to evaluate Audio Large Language Models (Audio-LLMs) on long-form audio understanding tasks. This repository contains the evaluation code and tools for testing various state-of-the-art audio-language models across multiple challenging tasks.
+
+### Key Features
+
+- 🎯 **Multi-Task Evaluation**: Supports 10+ diverse audio understanding tasks
+- 🔊 **Long-Form Audio**: Handles extended audio sequences up to several minutes
+- 🧠 **Multiple Models**: Evaluation scripts for Phi-4-MM, Qwen2.5-Omni, and Aero-1.
+- ⚡ **Audio Token Pruning**: Built-in support for various KV-cache compression methods
+- 📊 **Comprehensive Metrics**: Detailed performance analysis with timing statistics
+
+## 🎪 Supported Tasks
+
+AudioMarathon evaluates models across the following task categories with 6,563 samples:
+
+### Speech Content Extraction (1,514 samples - 23.07%)
+
+| Task | Dataset | Samples | Description |
+|------|---------|---------|-------------|
+| **Automatic Speech Recognition (ASR)** | LibriSpeech | 204 (3.10%) | Transcribe and understand spoken content |
+| **Speech Content Reasoning (SCR)** | RACE | 820 (12.49%) | Answer questions based on read-aloud passages |
+| **Speech Entity Recognition (SER)** | SLUE | 490 (7.46%) | Recognize and extract entities from spoken language |
+
+### Audio Classification (1,519 samples - 23.14%)
+
+| Task | Dataset | Samples | Description |
+|------|---------|---------|-------------|
+| **Audio Scene Classifier (ASC)** | TAU | 1,145 (17.44%) | Classify acoustic scenes (indoor/outdoor environments) |
+| **Music Classifier (MC)** | GTZAN | 120 (1.83%) | Classify music genres from audio clips |
+| **Sound Event Detection (SED)** | DESED | 254 (3.87%) | Detect and classify sound events in domestic environments |
+
+### Speaker Recognition (3,530 samples - 53.79%)
+
+| Task | Dataset | Samples | Description |
+|------|---------|---------|-------------|
+| **Emotion Recognition (ER)** | VESUS | 185 (2.82%) | Recognize emotions from speech |
+| **Speech Detection (SD)** | HAD | 776 (11.82%) | Distinguish between real and AI-generated speech |
+| **Speaker Age Recognition (SAR)** | VoxCeleb | 959 (14.60%) | Classify speaker age groups from voice |
+| **Speaker Gender Recognition (SGR)** | VoxCeleb | 1,614 (24.58%) | Classify speaker gender from voice |
+
+## 🏗️ Repository Structure
 
 ```
-README.md                  This documentation file
-sanitize_comments.py       Executed batch comment/path sanitization script (retained for reuse)
-LibriSpeech_analysis.py    (if exists) Summary or analysis script for LibriSpeech results
-
-analyse_audio_duration/    Scripts for analyzing total audio duration or related statistics of each dataset
-LibriSpeech_Results/       Evaluation output JSON for LibriSpeech (including sparse/different pruning ratios)
-Qwen_2.5/                  Core code for Qwen2.5-Omni model adaptation, processing, and inference
-Qwen_Methods/              Scripts for evaluating various datasets using "original/basic" methods (with optional pruning)
-Qwen_Dart/                 Evaluation scripts using DART sparse attention mechanism
-Segement/                  Processing scripts for specific tasks (such as segmentation/subtask splitting/Vox gender classification, etc.)
+AudioMarathon/
+├── Phi4MM/
+│   ├── DART/                    # DART (Dynamic Audio Reduction Technique) implementations
+│   ├── Others/                  # Standard evaluation scripts for Phi-4-MM
+│   │   ├── DESED_test.py       # Sound event detection evaluation
+│   │   ├── gtzan_test.py       # Music genre classification
+│   │   ├── HAD_test.py         # Audio deepfake detection
+│   │   ├── race_test.py        # Reading comprehension
+│   │   ├── SLUE_test.py        # Spoken language understanding
+│   │   ├── TAU_test.py         # Acoustic scene classification
+│   │   ├── VESUS_test.py       # Emotion recognition
+│   │   ├── Vox_age_test.py     # Age classification
+│   │   └── Vox_test.py         # Gender classification
+│   └── phi4_kvpress/            # KV-cache compression methods
+│
+├── Qwen_2.5_Omni/
+│   ├── Dart/                    # DART implementations for Qwen
+│   ├── Others/                  # Standard evaluation scripts for Qwen2.5-Omni
+│   └── qwen_kvpress/            # KV-cache compression methods
+│
+├── Voxtral/
+│   ├── eval_DESED.py           # Voxtral evaluation scripts
+│   ├── eval_GTZAN.py
+│   ├── eval_HAD.py
+│   ├── eval_LibriSpeech.py
+│   ├── eval_RACE.py
+│   ├── eval_SLUE.py
+│   ├── eval_TAU.py
+│   ├── eval_VESUS.py
+│   ├── eval_Vox_Age.py
+│   └── eval_Vox.py
+│
+├── Aero-1/                      # Aero-1 model evaluation scripts
+│   ├── DART/
+│   └── Others/
+│
+├── kvpress/                     # KV-cache compression implementations
+│   ├── presses/                 # Various compression strategies
+│   ├── attention_patch.py
+│   ├── audio_features.py
+│   └── pipeline.py
+│
+├── Segment/                     # Audio segmentation tools
+│   ├── GTZAN_task.py
+│   ├── HAD_segment.py
+│   ├── TAU_task.py
+│   └── Vox2_task.py
+│
+└── analyse_audio_duration/      # Audio duration analysis utilities
 ```
 
-> Note: `.bak` files with the same name are backups created during the first modification by the sanitization script, which can be deleted or kept for comparison.
+## 🚀 Quick Start
 
-## Functions of Each Subdirectory and File
+### Installation
 
-### 1. `Qwen_2.5/`
-Contains:
-- `modeling_qwen2_5_omni*.py` Multiple modes (original/low VRAM/DART/fast variant) of model wrappers or customizations.
-- `processing_qwen2_5_omni.py` / `audio_process.py` / `vision_process.py` Multimodal input preprocessing.
-- `configuration_qwen2_5_omni.py` Model configuration class.
-
-These files provide a unified interface for upper-level evaluation scripts (loading, processing audio tokens/visual tokens/text tokens, etc.).
-
-### 2. `Qwen_Methods/`
-Evaluation scripts written for several datasets (such as GTZAN, HAD, LibriSpeech, RACE, SLUE, TAU, VESUS, Vox, etc.), with file naming pattern: `<DATASET>_qwen2.5.py`.
-
-Common features:
-- Read dataset audio/text descriptions.
-- Construct multi-turn or single-turn multimodal prompts.
-- Call Qwen2.5-Omni for generation or classification, parse output and calculate accuracy, F1, and other metrics.
-- Support optional pruning parameters (via environment variables) to control audio token/layer pruning strategies.
-
-### 3. `Qwen_Dart/`
-Similar to the above, but integrates **DART sparse attention mechanism**. Scripts expose a set of command-line parameters (such as `--sparse`, `--pruned_layer`, `--reduction_ratio`, `--pivot_audio_token`, etc.) to control sparse configuration and retention ratio. Used to explore reducing computation/memory consumption while maintaining performance.
-
-### 4. `Segement/`
-Segmentation and subtask scripts for specific tasks, for example:
-- `HAD_segment.py` may segment long audio from a dataset into blocks before feeding into the model.
-- `Vox_task.py`, `Vox_total_gender.py`, `Vox2_task.py` Preprocessing or decomposition logic for VoxCeleb or age/gender classification tasks.
-- `TAU_task.py` Processing for TAU soundscape/event datasets.
-
-### 5. `analyse_audio_duration/`
-Quick statistics on total audio duration, sample count, mean, variance, etc., of multiple datasets (specific to each file implementation), helping with:
-- Estimating inference costs
-- Designing batch/pruning strategies
-- Comparing distribution characteristics of different datasets
-
-### 6. `LibriSpeech_Results/`
-Stores `*_results_*.json` and `*_timing_stats_*.json`:
-- `results` files: Per-sample or aggregated prediction outputs, model response parsing, and accuracy/F1, etc.
-- `timing_stats` files: Inference time, prefill time, token count statistics (usually averaged over the first N samples).
-
-These file names often include `sparse_ratio_x.xxx` to distinguish sparse/pruning settings.
-
-To run again if needed:
-```
-python sanitize_comments.py
+1. **Clone the repository**
+```bash
+git clone https://github.com/YourUsername/AudioMarathon.git
+cd AudioMarathon
 ```
 
-## Dependencies (Recommended)
+2. **Install dependencies**
 
-pip install -r requirements.txt
+Choose the appropriate requirements file based on the model you want to evaluate:
 
-## Usage Examples
+```bash
+# For Phi-4-MM
+pip install -r Phi4_requirements.txt
 
-### Basic Method Scripts (Example: GTZAN)
-```
-python Qwen_Methods/GTZAN_qwen2.5.py \
-	--model-path <MODEL_DIR>
-```
-Optional pruning control via environment variables:
-```
-set PRUNE_LAYER_IDX=2
-set PRUNE_RATIO=0.5
-set PRUNE_METHOD=frame   (options: base / frame / random)
-set SAMPLE_LIMIT=100      (test only first 100 samples)
-```
-> Windows PowerShell can use `$env:PRUNE_RATIO="0.5"` format; Linux/macOS use `export`.
+# For Qwen2.5-Omni
+pip install -r Qwen_requirements.txt
 
-### DART Sparse Version (Example: GTZAN)
+# For Aero-1
+pip install -r Aero1_requirements.txt
 ```
-python Qwen_Dart/GTZAN_qwen_dart.py \
-	--model-path <MODEL_DIR> \
-	--sparse true \
-	--pruned_layer 2 \
-	--reduction_ratio 0.7 \
-	--pivot_audio_token 4
-```
-Common parameters:
-- `--sparse`: Whether to enable DART
-- `--reduction_ratio`: Retention ratio (lower values are more sparse)
-- `--audio_token_start_index / --audio_token_length`: Audio token start and length (depends on data preprocessing)
-- `--sample_limit`: Limit sample count to speed up debugging
 
-### Dataset Root Path Setting
-If placeholders or relative paths appear in scripts, please change variables (e.g., `data_path_root`) to your local dataset directory:
-```
-data_path_root = "<DATASET_ROOT>/GTZAN/concatenated_audio"
-```
-Ensure directory structure is consistent with script reading methods (print/debug as necessary).
+**Note**: Each model has its own environment requirements. We recommend using separate virtual environments for different models to avoid dependency conflicts.
 
-### Results and Metrics
-Scripts typically output:
-- One sample/aggregated JSON per line (`*.jsonl` or `*_results_*.json`)
-- Timing statistics (`*_timing_stats_*.json`)
-External analysis scripts can be written for cross-comparison.
+3. **Download models**
+```bash
+# For Phi-4-MM
+huggingface-cli download microsoft/Phi-4-multimodal-instruct
 
-## Frequently Asked Questions (FAQ)
-1. Model not found: Confirm `--model-path` points to the downloaded Qwen2.5-Omni model directory.
-2. CUDA out of memory:
-	 - Use low VRAM version scripts (related paths to `modeling_qwen2_5_omni_low_VRAM_mode.py`)
-	 - Reduce batch size / use pruning or DART to reduce tokens
-3. Accuracy degradation: Gradually increase `reduction_ratio` or disable pruning to trace back to baseline.
-4. Empty results: Check if dataset path is correct and audio files are readable (try testing with `librosa.load` separately).
+# For Qwen2.5-Omni
+huggingface-cli download Qwen/Qwen2.5-Omni-7B
+
+# For Aero-1
+huggingface-cli download Aero-1/Aero-1-7B
+```
+
+
+### Basic Usage
+
+#### Evaluate Phi-4-MM on GTZAN (Music Genre Classification)
+
+```bash
+cd Phi4MM/Others
+
+# Basic evaluation
+export CUDA_VISIBLE_DEVICES=0
+export PRUNE_RATIO=0
+export PRUNE_METHOD=base
+export SAMPLE_LIMIT=100
+export RESULTS_DIR=./GTZAN_Results
+
+python gtzan_test.py
+```
+
+#### Evaluate with Audio Token Pruning
+
+```bash
+# Using FastV pruning with 50% compression
+export CUDA_VISIBLE_DEVICES=0
+export PRUNE_LAYER_IDX=2
+export PRUNE_RATIO=0.5
+export PRUNE_METHOD=fast_v
+export RESULTS_DIR=./GTZAN_Results_FastV50
+
+python gtzan_test.py
+```
+
+#### Batch Evaluation
+
+For evaluating multiple sparsity ratios in a single run, use the batch testing scripts:
+
+```bash
+cd Qwen_2.5_Omni/Dart
+
+# Basic usage - test HAD task with default ratios (0.1-0.9)
+bash batch_test.sh HAD
+
+# Test with custom GPU
+bash batch_test.sh --gpu-id 1 TAU
+
+# Test with sample limit (useful for quick testing)
+bash batch_test.sh --sample-limit 100 SLUE
+
+# Test with specific sparsity ratios
+bash batch_test.sh --ratios 0.0,0.3,0.5,0.7 VESUS
+
+# Test with custom pruned layers and output directory
+bash batch_test.sh --pruned-layer 3 --output-dir ./my_results GTZAN
+
+# Comprehensive test with all options
+bash batch_test.sh \
+  --gpu-id 0 \
+  --sample-limit 200 \
+  --pruned-layer 2 \
+  --ratios 0.0,0.2,0.4,0.6,0.8 \
+  --output-dir ./Qwen_DART_Results \
+  race
+```
+
+**Available Options:**
+- `-g, --gpu-id <id>`: Specify GPU device (default: 0)
+- `-s, --sample-limit <num>`: Limit number of samples (default: 0 for no limit)
+- `-l, --pruned-layer <num>`: Number of layers to prune (default: 2)
+- `-r, --ratios <ratios>`: Comma-separated sparsity ratios (default: 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9)
+- `-o, --output-dir <dir>`: Results output directory (default: ./Qwen_DART_Results)
+- `-h, --help`: Show help message
+
+**Supported Tasks:**
+HAD, race, SLUE, TAU, VESUS, Vox, Vox_age, LibriSpeech, DESED, GTZAN
+
+The batch script will:
+1. Automatically run tests for all specified sparsity ratios
+2. Generate logs for each test in `<output-dir>/logs/`
+3. Create a summary report with all results
+4. Display timing statistics and accuracy metrics
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+All evaluation scripts support the following environment variables:
+
+| Variable | Description | Default | Options |
+|----------|-------------|---------|---------|
+| `CUDA_VISIBLE_DEVICES` | GPU device ID | `0` | Any valid GPU ID |
+| `PRUNE_LAYER_IDX` | Layer index for audio pruning | `2` | Integer >= 0 |
+| `PRUNE_RATIO` | Ratio of audio tokens to prune | `0` | 0.0 - 1.0 |
+| `PRUNE_METHOD` | Pruning method to use | `base` | `base`, `fast_v`, `random`, `frame` |
+| `SAMPLE_LIMIT` | Limit number of samples | `0` (no limit) | Integer >= 0 |
+| `RESULTS_DIR` | Output directory for results | Task-specific | Any valid path |
+
+### Audio Token Pruning Methods
+
+AudioMarathon supports multiple KV-cache compression strategies:
+
+1. **base**: No pruning (baseline)
+2. **Fast_v**: FastV attention-based pruning
+3. **Random**: Random token pruning
+4. **Frame**: Frame-based structured pruning
+5. **DART**: Pruning tokens based on its duplication with other tokens
+
+
+## 📈 Performance Analysis
+
+### Timing Analysis
+
+Each script tracks detailed timing metrics:
+- **Prefill Time**: Time for initial audio encoding
+- **Decode Time**: Time for generating responses
+- **Tokens per Second**: Generation throughput
+- **Audio Duration**: Input audio length
+
+
+## 🛠️ Utility Tools
+
+### Audio Duration Analysis
+
+Analyze audio lengths in your datasets:
+
+```bash
+cd analyse_audio_duration
+python GTZAN.py
+python HAD.py
+python TAU.py
+```
+
+### Audio Segmentation
+
+Segment long audio files for processing:
+
+```bash
+cd Segment
+python GTZAN_task.py
+python HAD_segment.py
+python TAU_task.py
+```
+
+## 📝 Data Preparation
+
+### Expected Data Format
+
+Each task expects data in a specific format:
+
+#### GTZAN (JSON metadata)
+```json
+[
+  {
+    "path": "audio/blues_001.wav",
+    "question": "What is the genre of this music?",
+    "choice_a": "Blues",
+    "choice_b": "Classical",
+    "choice_c": "Rock",
+    "choice_d": "Jazz",
+    "answer_gt": "A"
+  }
+]
+```
+
+#### HAD (Directory structure)
+```
+HAD/
+├── real/
+│   ├── audio_001.wav
+│   └── audio_002.wav
+└── fake/
+    ├── audio_001.wav
+    └── audio_002.wav
+```
+
+#### DESED (JSON with tasks)
+```json
+{
+  "tasks": [
+    {
+      "path": "audio_001.wav",
+      "task_type": "detection",
+      "question": "What sound events are present?",
+      "choices": {
+        "A": "Dog barking",
+        "B": "Car horn",
+        "C": "Phone ringing",
+        "D": "Door slamming"
+      },
+      "answer_gt": "C"
+    }
+  ]
+}
+```
+
+
+
+## 📄 Citation
+
+If you use AudioMarathon in your research, please cite:
+
+```bibtex
+@inproceedings{audiomarathon2026,
+  title={AudioMarathon: A Comprehensive Benchmark for Long-Form Audio Understanding},
+  author={Your Authors},
+  booktitle={International Conference on Learning Representations (ICLR)},
+  year={2026}
+}
+```
+
+## 📧 Contact
+
+For questions or issues, please:
+- Open an issue on GitHub
+- Contact: your.email@example.com
+
+## 🙏 Acknowledgments
+
+We thank the following for their contributions:
+- Microsoft for Phi-4-Multimodal
+- Qwen team for Qwen2.5-Omni
+- Fixie AI for Ultravox/Voxtral
+- All dataset providers (DESED, GTZAN, HAD, LibriSpeech, RACE, SLUE, TAU, VESUS, VoxCeleb)
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Note**: This benchmark is designed for research purposes. Please ensure you have the proper licenses and permissions for all datasets before use.
