@@ -38,6 +38,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/DabDans/AudioMarathon?style=social)](https://github.com/DabDans/AudioMarathon/stargazers)
 [![Dataset](https://img.shields.io/badge/🤗-Dataset-9C276A.svg)](https://huggingface.co/datasets/Hezep/AudioMarathon)
 </div>
+<h5 align="center"> If you like our project, please consider giving us a star ⭐ 🥹🙏 </h2>
 
 
 
