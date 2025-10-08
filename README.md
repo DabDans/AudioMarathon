@@ -480,7 +480,7 @@ We thank the following for their contributions:
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is released under the [Apache 2.0 license](LICENSE).
 
 ---
 
