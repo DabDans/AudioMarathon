@@ -6,42 +6,28 @@
 
 <h4 align="center"> 
   
-**Peize He**<sup>1,3*</sup>, 
+**Peize He**<sup>1*</sup>, 
 **Zichen Wen**<sup>1,2*</sup>, 
 **Yubo Wang**<sup>1*</sup>, 
-**Yuxuan Wang**<sup>1,9</sup>, 
-**Xiaoqian Liu**<sup>1,4</sup>, <br>
+**Yuxuan Wang**<sup>1</sup>, 
+**Xiaoqian Liu**<sup>1,3</sup>, <br>
 **Jiajie Huang**<sup>1</sup>, 
 **Zehui Lei**<sup>1</sup>, 
-**Zhuangcheng Gu**<sup>5</sup>, 
+**Zhuangcheng Gu**<sup>4</sup>, 
 **Xiangqi Jin**<sup>1</sup>, 
-**Jiabing Yang**<sup>6</sup>, <br>
-**Kai Li**<sup>7</sup>, 
+**Jiabing Yang**<sup>5</sup>, <br>
+**Kai Li**<sup>6</sup>, 
 **Zhifei Liu**<sup>1</sup>, 
-**Weijia Li**<sup>8,2</sup>, 
-**Cunxiang Wang**<sup>7</sup>, 
+**Weijia Li**<sup>7,2</sup>, 
+**Cunxiang Wang**<sup>6</sup>, 
 **Conghui He**<sup>2</sup>, 
 **Linfeng Zhang**<sup>1†</sup>
 
-</h4>
+<sup>1</sup>Shanghai Jiao Tong University  <sup>2</sup>Shanghai AI Laboratory <sup>3</sup>Northeastern University <br>
+<sup>4</sup>Carnegie Mellon University  <sup>5</sup>University of Chinese Academy of Sciences  <br>
+<sup>6</sup>Tsinghua University  <sup>7</sup>Sun Yat-sen University
 
-<p align="center">
-<sup>1</sup>Shanghai Jiao Tong University&nbsp;&nbsp;
-<sup>2</sup>Shanghai AI Laboratory<br>
-<sup>3</sup>University of Electronic Science and Technology of China&nbsp;&nbsp;
-<sup>4</sup>Northeastern University<br>
-<sup>5</sup>Carnegie Mellon University&nbsp;&nbsp;
-<sup>6</sup>University of Chinese Academy of Sciences&nbsp;&nbsp;
-<sup>7</sup>Tsinghua University<br>
-<sup>8</sup>Sun Yat-sen University&nbsp;&nbsp;
-<sup>9</sup>Xidian University
-</p>
-
-<p align="center">
-<sup>*</sup>Equal contribution&nbsp;&nbsp;&nbsp;&nbsp;<sup>†</sup>Corresponding author
-</p>
-
-<h4 align="center">
+<sup>*</sup>Equal contribution  <sup>†</sup>Corresponding author
 
 </h4>
 
