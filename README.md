@@ -340,15 +340,6 @@ Based on average F1-scores across all 10 tasks (SER, SCR, ASR, SED, MC, ASC, SD,
 - **SAR**: Speaker Age Recognition (VoxCeleb)
 - **SGR**: Speaker Gender Recognition (VoxCeleb)
 
-#### 🎯 Key Insights
-
-- **Qwen2.5-Omni-7B** 🥇 leads among open-source models with an impressive **70.5** average score
-- Achieves perfect score (**100.0**) in Music Classification and excellent performance in ASR (**98.1**)
-- **Gemini-2.5-Flash** tops closed-source models with near-perfect gender recognition (**99.3**)
-- Open-source models now **outperform** closed-source alternatives (70.5 vs 59.6)
-- Human evaluation benchmark: **87.6** average score
-
----
 
 ### 🏅 Category Champions
 
