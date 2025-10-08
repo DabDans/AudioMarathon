@@ -335,14 +335,6 @@ HAD/
 
 If you use AudioMarathon in your research, please cite:
 
-```bibtex
-@inproceedings{audiomarathon2026,
-  title={AudioMarathon: A Comprehensive Benchmark for Long-Form Audio Understanding},
-  author={Your Authors},
-  booktitle={International Conference on Learning Representations (ICLR)},
-  year={2026}
-}
-```
 
 ## 📧 Contact
 
