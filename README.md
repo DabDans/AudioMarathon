@@ -15,6 +15,31 @@
 <sup>*</sup>Equal contribution  
 <sup>†</sup>Corresponding author
 
+---
+
+## 📑 Table of Contents
+
+- [📖 Overview](#-overview)
+- [🎪 Supported Tasks](#-supported-tasks)
+- [🔗 Pipeline](#pipeline)
+- [🏆 Leader Board](#leader-board) 🌟
+- [📊 Visible Results](#visible-results) 🌟
+- [🏗️ Repository Structure](#️-repository-structure)
+- [🚀 Quick Start](#-quick-start)
+- [⚙️ Configuration](#️-configuration)
+- [📈 Performance Analysis](#-performance-analysis)
+- [🛠️ Utility Tools](#️-utility-tools)
+- [📝 Data Preparation](#-data-preparation)
+- [📄 Citation](#-citation)
+- [📧 Contact](#-contact)
+- [🙏 Acknowledgments](#-acknowledgments)
+- [📜 License](#-license)
+
+**Quick Links:** 
+[🏆 View Leader Board](#leader-board) | [📊 View Results](#visible-results) | [🚀 Get Started](#-quick-start) 
+
+---
+
 ## 📖 Overview
 
 **AudioMarathon** is a comprehensive benchmark designed to evaluate Audio Large Language Models (Audio-LLMs) on long-form audio understanding tasks. This repository contains the evaluation code and tools for testing various state-of-the-art audio-language models across multiple challenging tasks.
