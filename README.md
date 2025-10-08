@@ -36,6 +36,7 @@
 [![](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FDabDans%2FAudioMarathon&count_bg=%23C25AE6&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Visitor&edge_flat=false)](https://hits.seeyoufarm.com)
 [![GitHub issues](https://img.shields.io/github/issues/DabDans/AudioMarathon?color=critical&label=Issues)](https://github.com/DabDans/AudioMarathon/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/DabDans/AudioMarathon?style=social)](https://github.com/DabDans/AudioMarathon/stargazers)
+[![Dataset](https://img.shields.io/badge/🤗-Dataset-9C276A.svg)](https://huggingface.co/datasets/Hezep/AudioMarathon)
 </div>
 
 
