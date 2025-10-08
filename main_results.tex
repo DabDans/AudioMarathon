@@ -1,0 +1,165 @@
+% \begin{table*}[ht!]
+% \caption{
+%     Comprehensive baseline performance of all models on the AudioMarathon. The primary metric is F1-score, presented on a 0-100 scale.
+%     Inference time breakdown is provided for local models only.
+%     *For LibriSpeech-long, the metric is Word Error Rate (WER), where a lower value is better.
+% }
+% \label{tab:unified_baseline_final}
+% \centering
+% \small
+% \renewcommand{\arraystretch}{1.1}
+% % 定义列格式: l(左对齐), l, r(右对齐), r, r, r
+% \begin{tabular}{l l r r r r}
+% \toprule
+% % --- 多级表头 ---
+% \multirow{2}{*}{\textbf{Task}} & \multirow{2}{*}{\textbf{Model}} & \multirow{2}{*}{\textbf{F1-score (0-100) / WER*}} & \multicolumn{3}{c}{\textbf{Inference Time (s)}} \\
+% \cmidrule(lr){4-6}
+% & & & Total & Prefill & Decode \\
+% \midrule
+
+% % --- DESED ---
+% \multirow{4}{*}{DESED} 
+%  & Phi-4-Multimodal & 55.1 & 1.298 & 0.550 & 0.748 \\
+%  & Qwen\_2.5\_omni & 70.2 & 0.694 & 0.645 & 0.049 \\
+%  & GPT-4-audio & 50.7 &  &  &  \\
+%  & Gemini 2.0 Flash & 68.1 &  &  &  \\
+% \midrule
+
+% % --- GTZAN ---
+% \multirow{4}{*}{GTZAN} 
+%  & Phi-4-Multimodal & 46.7 & 1.896 & 0.929 & 0.968 \\
+%  & Qwen\_2.5\_omni & 97.4 & 1.108 & 0.555 & 0.553 \\
+%  & GPT-4-audio & 59.5 &  &  &  \\
+%  & Gemini 2.0 Flash & 88.5 &  &  &  \\
+% \midrule
+
+% % --- HAD ---
+% \multirow{4}{*}{HAD} 
+%  & Phi-4-Multimodal & 26.4 & 1.517 & 0.698 & 0.819 \\
+%  & Qwen\_2.5\_omni & 61.3 & 0.622 & 0.576 & 0.047 \\
+%  & GPT-4-audio & 32.5 &  &  &  \\
+%  & Gemini 2.0 Flash & 32.1 &  &  &  \\
+% \midrule
+
+% % --- RACE ---
+% \multirow{4}{*}{RACE} 
+%  & Phi-4-Multimodal & 69.3 & 1.047 & 0.452 & 0.595 \\
+%  & Qwen\_2.5\_omni & 83.2 & 0.745 & 0.349 & 0.396 \\
+%  & GPT-4-audio & 61.4 &  &  &  \\
+%  & Gemini 2.0 Flash & 71.8 &  &  &  \\
+% \midrule
+
+% % --- SER ---
+% \multirow{4}{*}{SLUE} 
+%  & Phi-4-Multimodal & 18.4 & 1.207 & 0.662 & 0.546 \\
+%  & Qwen\_2.5\_omni & 9.7 & 1.525 & 0.738 & 0.787 \\
+%  & GPT-4-audio & 25.8 &  &  &  \\
+%  & Gemini 2.0 Flash & 30.9 &  &  &  \\
+% \midrule
+
+% % --- TAU ---
+% \multirow{4}{*}{TAU} 
+%  & Phi-4-Multimodal & 23.4 & 0.921 & 0.460 & 0.461 \\
+%  & Qwen\_2.5\_omni & 72.3 & 0.488 & 0.438 & 0.050 \\
+%  & GPT-4-audio & 40.8 &  &  &  \\
+%  & Gemini 2.0 Flash & 54.1 &  &  &  \\
+% \midrule
+
+% % --- VESUS ---
+% \multirow{4}{*}{VESUS} 
+%  & Phi-4-Multimodal & 27.3 & 1.041 & 0.239 & 0.802 \\
+%  & Qwen\_2.5\_omni & 9.8 & 0.669 & 0.241 & 0.428 \\
+%  & GPT-4-audio & 22.5 &  &  &  \\
+%  & Gemini 2.0 Flash & 20.1 &  &  &  \\
+% \midrule
+
+% % --- VoxAge ---
+% \multirow{4}{*}{VoxAge} 
+%  & Phi-4-Multimodal & 41.5 & 1.411 & 0.404 & 1.007 \\
+%  & Qwen\_2.5\_omni & 97.2 & 0.930 & 0.441 & 0.489 \\
+%  & GPT-4-audio & 17.2 &  &  &  \\
+%  & Gemini 2.0 Flash & 39.2 &  &  &  \\
+% \midrule
+
+% % --- VoxGender ---
+% \multirow{4}{*}{VoxGender} 
+%  & Phi-4-Multimodal & 91.1 & 0.840 & 0.409 & 0.431 \\
+%  & Qwen\_2.5\_omni & 97.2 & 0.932 & 0.443 & 0.489 \\
+%  & GPT-4-audio & 69.2 &  &  &  \\
+%  & Gemini 2.0 Flash & 93.1 &  &  &  \\
+% \midrule
+
+% % --- LibriSpeech-long ---
+% \multirow{4}{*}{LibriSpeech-long} 
+%  & Phi-4-Multimodal & 7.27* & 48.811 & 0.456 & 48.355 \\
+%  & Qwen\_2.5\_omni & 5.31* & 39.020 & 0.508 & 38.512 \\
+%  & GPT-4-audio & 5.40* &  &  &  \\
+%  & Gemini 2.0 Flash & 3.63* &  &  &  \\
+% \bottomrule
+% \end{tabular}
+% \end{table*}
+
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+\begin{table*}[!t]
+\centering
+\caption{Performance comparison of models on AudioMarathon across tasks, grouped into Speech Content Extraction (SER, SCR, ASR), Audio Classification (SED, MC, ASC), and Speaker Information Modeling (SD, ER, SAR, SGR). The Avg. column shows the mean score across all tasks. Best scores are in \textbf{bold}, second-best are 
+\underline{underlined}.}
+\vspace{-2.5mm}
+\centering
+% \small
+\renewcommand{\arraystretch}{1.05}
+
+% --- 开始修改 ---
+% 1. 定义一个居中且固定宽度的新列类型 'C'
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+% 2. 定义两个长度变量，一个用于前3列，一个用于后7列
+\newlength{\mycolwidthA}
+\newlength{\mycolwidthB}
+% 3. 设置列宽。我们根据最宽的数据 "150.0" 来设置基础宽度，以确保所有内容都能放下。
+%    默认情况下，两组的列宽是相等的。您可以调整例如 \mycolwidthB 的定义
+%    (例如 \setlength{\mycolwidthB}{0.8\mycolwidthA}) 来改变两组之间的相对宽度。
+\settowidth{\mycolwidthA}{150.0}
+\settowidth{\mycolwidthB}{150.0}
+\setlength{\mycolwidthA}{1.2\mycolwidthB}
+% --- 结束修改 ---
+
+\resizebox{\linewidth}{!}{
+% --- 修改此处：为前3个数据列和后7个数据列应用不同的列定义 ---
+\begin{tabular}{l *{3}{C{\mycolwidthA}} *{7}{C{\mycolwidthB}} c} 
+\toprule \toprule
+\multirow{2}{*}{\textbf{Models}} & \multicolumn{3}{c}{\textbf{Speech Content Extraction}} & \multicolumn{3}{c}{\textbf{Audio Classification}} & \multicolumn{4}{c}{\textbf{Speaker Information Modeling}} & \multirow{2}{*}{\textbf{Avg.}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-11}
+% 这一行无需改动
+& \textbf{SER} & \textbf{SCR} & \textbf{ASR} & \textbf{SED} & \textbf{MC} & \textbf{ASC} & \textbf{SD} & \textbf{ER} & \textbf{SAR} & \textbf{SGR} & \\
+
+\midrule \midrule
+\multicolumn{12}{c}{\textbf{Open-source Audio LLMs}} \\ \midrule \midrule
+Phi-4-Multimodal & 18.4 & 69.3 & {92.7} & 55.1 & 46.7 & 23.4 & 26.4 & 27.3 & 26.6 & 91.1 & 47.7 \\
+Qwen2.5-Omni-3B & 25.2 & 82.3 & {94.7} & \underline{70.2} & \underline{97.4} & \underline{69.3} & 67.3 & 39.6 & 29.1 & 97.2 & \underline{67.2} \\
+Qwen2.5-Omni-7B  & 26.3 & \textbf{85.1} & {\textbf{98.1}} & \textbf{78.4} & \textbf{100.0} & \textbf{72.2} & \textbf{72.3} & \underline{53.4} & 21.4 & \underline{98.0} & \textbf{70.5}\\
+Audio-Flamingo-2 & 26.8 & 39.8 & {1.0} & 27.1 & 66.8 & 29.7 & 45.9 & 13.1 & 20.3 & 85.1 & 35.6 \\
+Audio-Flamingo-3 & 21.7 & 78.9 & {94.3} & 59.5 & {97.0} & 54.1 & 33.7 & \textbf{54.3} & \textbf{40.7} & 96.2 & 63.0 \\
+Gemma-3n-E2B-it & 22.5 & 51.6 & {91.3} & 50.2 & 56.8 & 28.2 & 35.1 & 15.2 & 12.2 & 91.6 & 45.5\\
+Gemma-3n-E4B-it & 19.0 & 56.9 & {93.2} & 50.2 & 71.9 & 31.7 & 35.9 & 18.9 & 21.8 & 93 & 49.3\\
+Voxtral-Mini-3B-2507 & 24.3 & 71.1 & {96.8} & 71.0 & 83.8 & 27.2 & \underline{68.0} & 29.7 & 30.7 & 71.0 & 57.4 \\
+Baichuan-Omni-1.5 & 12.4 & 11.2 & {86.5} & 45.7 & 52.0 & 25.8 & 49.2 & 18.9 & 10.2 & 81.5 & 39.3 \\
+Aero-1-Audio & 17.9 & 56.6 & {43.7} & 55.0 & 83.9 & 39.9 & 33.7 & 32.0 & 17.8 & 47.5 & 42.8\\    
+\midrule \midrule
+\multicolumn{12}{c}{\textbf{Close-source Audio LLMs}} \\ \midrule \midrule
+GPT-4o-Audio (Preview 2024-10-01) & 25.8 & 61.4 & {94.4} & 50.7 & 59.5 & 40.8 & 32.5 & 22.5 & 17.2 & 69.2 & 47.4 \\
+GPT-4o-Audio (Preview 2024-12-17)& 25.7 & 60.2 & {94.7} & 51.2 & 67.6 & 41.9 & 30.8 & 21.8 & 19.9 & 73.1& 48.7 \\
+Gemini-2.0-Flash-Lite& 23.7 & 65.6 & {\underline{97.4}} & 60.9 & 86.9 & 43.4 & 34.5 & 17.3 &19.0 & 82.1 & 53.1 \\
+Gemini-2.0-Flash & \textbf{30.9} & 71.8 & {96.4} & 68.1 & 88.5 & 54.1 & 32.1 & 20.1 & \underline{39.2} & 93.1 & 59.4 \\
+Gemini-2.5-Flash-Lite & \underline{30.3} & 64.0 & {96.5} & 68.0 & 64.8 & 36.8 & 33.9 & 14.6 & 19.6 & 77.9 & 50.6\\
+Gemini-2.5-Flash & 28.1 & \underline{83.6} & {96.8} & 69.2 & 79.3 & 40.8 & 33.1 & 31.9 & 34.3 & \textbf{99.3} & 59.6\\
+
+\midrule \midrule
+
+Human Evaluation & 45.1 & 88.1 & -- & 96.2 & 100.0 & 100.0 & 100.0 & 90.8 & 71.4 & 97.0 & 87.6 \\
+\bottomrule 
+\end{tabular}}
+\label{tab:AudioMarathon_results_categories_avg}
+\vspace{-1.6em}
+\end{table*}
