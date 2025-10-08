@@ -27,13 +27,13 @@
 
 <p align="center">
 <sup>1</sup>Shanghai Jiao Tong University&nbsp;&nbsp;
-<sup>2</sup>Shanghai AI Laboratory&nbsp;&nbsp;
-<sup>3</sup>University of Electronic Science and Technology of China<br>
+<sup>2</sup>Shanghai AI Laboratory<br>
+<sup>3</sup>University of Electronic Science and Technology of China&nbsp;&nbsp;
 <sup>4</sup>Northeastern University&nbsp;&nbsp;
-<sup>5</sup>Carnegie Mellon University&nbsp;&nbsp;
-<sup>6</sup>University of Chinese Academy of Sciences<br>
+<sup>5</sup>Carnegie Mellon University<br>
+<sup>6</sup>University of Chinese Academy of Sciences&nbsp;&nbsp;
 <sup>7</sup>Tsinghua University&nbsp;&nbsp;
-<sup>8</sup>Sun Yat-sen University&nbsp;&nbsp;
+<sup>8</sup>Sun Yat-sen University<br>
 <sup>9</sup>Xidian University
 </p>
 
