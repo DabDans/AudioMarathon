@@ -61,6 +61,7 @@ AudioMarathon evaluates models across the following task categories with 6,563 s
 | **Speaker Gender Recognition (SGR)** | VoxCeleb | 1,614 (24.58%) | Classify speaker gender from voice |
 
 ## Pipeline
+### Data Consturction Pipeline
 <div align="center">
   <img src="./AudioMarathon_05.png" alt="Data Construction Pipeline" width="100%">
 </div>
@@ -145,18 +146,6 @@ pip install -r Aero1_requirements.txt
 ```
 
 **Note**: Each model has its own environment requirements. We recommend using separate virtual environments for different models to avoid dependency conflicts.
-
-3. **Download models**
-```bash
-# For Phi-4-MM
-huggingface-cli download microsoft/Phi-4-multimodal-instruct
-
-# For Qwen2.5-Omni
-huggingface-cli download Qwen/Qwen2.5-Omni-7B
-
-# For Aero-1
-huggingface-cli download Aero-1/Aero-1-7B
-```
 
 
 ### Basic Usage
@@ -274,6 +263,82 @@ Each script tracks detailed timing metrics:
 - **Tokens per Second**: Generation throughput
 - **Audio Duration**: Input audio length
 
+## Visible Results
+### Rader Chart
+<div align="center">
+  <img src="./radar_figure.png" alt="Rader Chart" width="100%">
+</div>
+
+
+## Leader Board
+
+### 🏆 Overall Performance Ranking
+
+Based on average F1-scores across all 10 tasks (SER, SCR, ASR, SED, MC, ASC, SD, ER, SAR, SGR):
+
+#### 🥇 Top Open-Source Models
+
+| Rank | Model | Avg. Score | SER | SCR | ASR | SED | MC | ASC | SD | ER | SAR | SGR |
+|:----:|-------|:----------:|:---:|:---:|:---:|:---:|:--:|:---:|:--:|:--:|:---:|:---:|
+| 🥇 | **Qwen2.5-Omni-7B** | **70.5** | 26.3 | **85.1** | **98.1** | **78.4** | **100.0** | **72.2** | **72.3** | 53.4 | 21.4 | 98.0 |
+| 🥈 | **Qwen2.5-Omni-3B** | **67.2** | 25.2 | 82.3 | 94.7 | 70.2 | 97.4 | 69.3 | 67.3 | 39.6 | 29.1 | 97.2 |
+| 🥉 | **Audio-Flamingo-3** | **63.0** | 21.7 | 78.9 | 94.3 | 59.5 | 97.0 | 54.1 | 33.7 | **54.3** | **40.7** | 96.2 |
+| 4 | Voxtral-Mini-3B-2507 | 57.4 | 24.3 | 71.1 | 96.8 | 71.0 | 83.8 | 27.2 | 68.0 | 29.7 | 30.7 | 71.0 |
+| 5 | Gemma-3n-E4B-it | 49.3 | 19.0 | 56.9 | 93.2 | 50.2 | 71.9 | 31.7 | 35.9 | 18.9 | 21.8 | 93.0 |
+| 6 | Phi-4-Multimodal | 47.7 | 18.4 | 69.3 | 92.7 | 55.1 | 46.7 | 23.4 | 26.4 | 27.3 | 26.6 | 91.1 |
+| 7 | Gemma-3n-E2B-it | 45.5 | 22.5 | 51.6 | 91.3 | 50.2 | 56.8 | 28.2 | 35.1 | 15.2 | 12.2 | 91.6 |
+| 8 | Aero-1-Audio | 42.8 | 17.9 | 56.6 | 43.7 | 55.0 | 83.9 | 39.9 | 33.7 | 32.0 | 17.8 | 47.5 |
+| 9 | Baichuan-Omni-1.5 | 39.3 | 12.4 | 11.2 | 86.5 | 45.7 | 52.0 | 25.8 | 49.2 | 18.9 | 10.2 | 81.5 |
+| 10 | Audio-Flamingo-2 | 35.6 | 26.8 | 39.8 | 1.0 | 27.1 | 66.8 | 29.7 | 45.9 | 13.1 | 20.3 | 85.1 |
+
+#### 🥇 Top Closed-Source Models
+
+| Rank | Model | Avg. Score | SER | SCR | ASR | SED | MC | ASC | SD | ER | SAR | SGR |
+|:----:|-------|:----------:|:---:|:---:|:---:|:---:|:--:|:---:|:--:|:--:|:---:|:---:|
+| 🥇 | **Gemini-2.5-Flash** | **59.6** | 28.1 | **83.6** | 96.8 | 69.2 | 79.3 | 40.8 | 33.1 | 31.9 | 34.3 | **99.3** |
+| 🥈 | **Gemini-2.0-Flash** | **59.4** | **30.9** | 71.8 | 96.4 | 68.1 | 88.5 | **54.1** | 32.1 | 20.1 | **39.2** | 93.1 |
+| 🥉 | **Gemini-2.0-Flash-Lite** | **53.1** | 23.7 | 65.6 | **97.4** | 60.9 | 86.9 | 43.4 | 34.5 | 17.3 | 19.0 | 82.1 |
+| 4 | Gemini-2.5-Flash-Lite | 50.6 | 30.3 | 64.0 | 96.5 | 68.0 | 64.8 | 36.8 | 33.9 | 14.6 | 19.6 | 77.9 |
+| 5 | GPT-4o-Audio (2024-12-17) | 48.7 | 25.7 | 60.2 | 94.7 | 51.2 | 67.6 | 41.9 | 30.8 | 21.8 | 19.9 | 73.1 |
+| 6 | GPT-4o-Audio (2024-10-01) | 47.4 | 25.8 | 61.4 | 94.4 | 50.7 | 59.5 | 40.8 | 32.5 | 22.5 | 17.2 | 69.2 |
+
+#### 📊 Task Abbreviations
+
+- **SER**: Speech Entity Recognition (SLUE)
+- **SCR**: Speech Content Reasoning (RACE)
+- **ASR**: Automatic Speech Recognition (LibriSpeech)
+- **SED**: Sound Event Detection (DESED)
+- **MC**: Music Classification (GTZAN)
+- **ASC**: Audio Scene Classification (TAU)
+- **SD**: Speech Detection/Deepfake Detection (HAD)
+- **ER**: Emotion Recognition (VESUS)
+- **SAR**: Speaker Age Recognition (VoxCeleb)
+- **SGR**: Speaker Gender Recognition (VoxCeleb)
+
+#### 🎯 Key Insights
+
+- **Qwen2.5-Omni-7B** 🥇 leads among open-source models with an impressive **70.5** average score
+- Achieves perfect score (**100.0**) in Music Classification and excellent performance in ASR (**98.1**)
+- **Gemini-2.5-Flash** tops closed-source models with near-perfect gender recognition (**99.3**)
+- Open-source models now **outperform** closed-source alternatives (70.5 vs 59.6)
+- Human evaluation benchmark: **87.6** average score
+
+---
+
+### 🏅 Category Champions
+
+| Category | Champion Model | Score | Runner-up | Score |
+|----------|----------------|:-----:|-----------|:-----:|
+| **Speech Content Extraction** | Gemini-2.0-Flash | 30.9 (SER) | Gemini-2.5-Flash-Lite | 30.3 |
+| | Qwen2.5-Omni-7B | 85.1 (SCR) | Gemini-2.5-Flash | 83.6 |
+| | Qwen2.5-Omni-7B | 98.1 (ASR) | Gemini-2.0-Flash-Lite | 97.4 |
+| **Audio Classification** | Qwen2.5-Omni-7B | 78.4 (SED) | Voxtral-Mini | 71.0 |
+| | Qwen2.5-Omni-7B | 100.0 (MC) | Audio-Flamingo-3 | 97.0 |
+| | Qwen2.5-Omni-7B | 72.2 (ASC) | Qwen2.5-Omni-3B | 69.3 |
+| **Speaker Information** | Qwen2.5-Omni-7B | 72.3 (SD) | Voxtral-Mini | 68.0 |
+| | Audio-Flamingo-3 | 54.3 (ER) | Qwen2.5-Omni-7B | 53.4 |
+| | Audio-Flamingo-3 | 40.7 (SAR) | Gemini-2.0-Flash | 39.2 |
+| | Gemini-2.5-Flash | 99.3 (SGR) | Qwen2.5-Omni-7B | 98.0 |
 
 ## 🛠️ Utility Tools
 
