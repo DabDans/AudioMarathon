@@ -40,6 +40,8 @@
 </div>
 <h5 align="center"> If you like our project, please consider giving us a star ⭐ 🥹🙏 </h2>
 
+## 🔥 News
+* **`2025.10.08`** 🤗🤗 We release our latest work [AudioMarathon](), a comprehensive benchmark designed to evaluate the performance and efficiency of Audio-LLMs on long-form audio understanding tasks. [Code](https://github.com/DabDans/AudioMarathon) is available!
 
 
 ## 📑 Table of Contents
