@@ -23,11 +23,25 @@
 **Conghui He**<sup>2</sup>, 
 **Linfeng Zhang**<sup>1†</sup>
 
-<sup>1</sup>Shanghai Jiao Tong University  <sup>2</sup>Shanghai AI Laboratory  <sup>3</sup>University of Electronic Science and Technology of China <br>
-<sup>4</sup>Northeastern University  <sup>5</sup>Carnegie Mellon University  <sup>6</sup>University of Chinese Academy of Sciences  <br>
-<sup>7</sup>Tsinghua University  <sup>8</sup>Sun Yat-sen University  <sup>9</sup>Xidian University
+</h4>
 
-<sup>*</sup>Equal contribution  <sup>†</sup>Corresponding author
+<p align="center">
+<sup>1</sup>Shanghai Jiao Tong University&nbsp;&nbsp;
+<sup>2</sup>Shanghai AI Laboratory&nbsp;&nbsp;
+<sup>3</sup>University of Electronic Science and Technology of China<br>
+<sup>4</sup>Northeastern University&nbsp;&nbsp;
+<sup>5</sup>Carnegie Mellon University&nbsp;&nbsp;
+<sup>6</sup>University of Chinese Academy of Sciences<br>
+<sup>7</sup>Tsinghua University&nbsp;&nbsp;
+<sup>8</sup>Sun Yat-sen University&nbsp;&nbsp;
+<sup>9</sup>Xidian University
+</p>
+
+<p align="center">
+<sup>*</sup>Equal contribution&nbsp;&nbsp;&nbsp;&nbsp;<sup>†</sup>Corresponding author
+</p>
+
+<h4 align="center">
 
 </h4>
 
