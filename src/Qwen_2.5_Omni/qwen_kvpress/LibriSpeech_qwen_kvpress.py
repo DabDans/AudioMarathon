@@ -861,4 +861,95 @@ def main():
             hypothesis = clean_response(resp)
             wer = calculate_wer(reference, hypothesis)
             total_wer += wer
-            processed
+            processed_samples += 1
+            
+            timing_stats.add_sample(total_time, prefill_time, total_time)
+            
+            result = {
+                "idx": idx,
+                "id": doc.get("id", f"sample_{idx}"),
+                "speaker_id": speaker_id,
+                "chapter_id": doc.get("chapter_id", ""),
+                "path": audio_path,
+                "duration": doc.get("duration", 0),
+                "reference": reference,
+                "hypothesis": hypothesis,
+                "wer": float(wer),
+                "response_text": resp,
+                "prefill_time": float(prefill_time),
+                "decode_time": float(decode_time),
+                "total_time": float(total_time),
+                "input_tokens": inputs['input_ids'].shape[1],
+                "output_tokens": out_ids.shape[1] - inputs['input_ids'].shape[1]
+            }
+            results.append(result)
+            
+            if (idx + 1) % 10 == 0:
+                torch.cuda.empty_cache()
+                gc.collect()
+            
+            progress_bar.set_postfix({
+                'WER': f'{wer:.2f}%',
+                'Avg_WER': f'{total_wer/processed_samples:.2f}%'
+            })
+        
+        progress_bar.close()
+        
+        print("\n" + "="*60)
+        print("LibriSpeech ASR Evaluation Complete")
+        print("="*60)
+        
+        references = [r["reference"] for r in results if not r.get("skipped", False)]
+        hypotheses = [r["hypothesis"] for r in results if not r.get("skipped", False)]
+        
+        if len(references) > 0:
+            metrics = calculate_librispeech_metrics(references, hypotheses)
+            print(f"\nASR Performance Metrics:")
+            print(f"  Total samples: {metrics['total_samples']}")
+            print(f"  Valid samples: {metrics['valid_samples']}")
+            print(f"  WER Mean: {metrics['wer_mean']:.2f}%")
+            print(f"  WER Std: {metrics['wer_std']:.2f}%")
+            print(f"  WER Min: {metrics['wer_min']:.2f}%")
+            print(f"  WER Max: {metrics['wer_max']:.2f}%")
+            print(f"  Perfect predictions: {metrics['perfect_predictions']}")
+            print(f"  Word Accuracy: {metrics['word_accuracy']:.2f}%")
+        else:
+            print("\nNo valid samples processed")
+            metrics = {}
+        
+        timing_summary = timing_stats.get_summary()
+        print(f"\nTiming Statistics (excluding first sample):")
+        print(f"  Processed samples: {timing_summary['count']}")
+        print(f"  Avg wall time: {timing_summary['avg_wall_time']:.4f}s")
+        print(f"  Avg prefill time: {timing_summary['avg_prefill_time']:.4f}s")
+        print(f"  Avg total GPU time: {timing_summary['avg_total_gpu_time']:.4f}s")
+        
+        timing_stats.export_to_json(timing_file)
+        print(f"\nTiming stats saved to: {timing_file}")
+        
+        final_results = {
+            "config": {
+                "model": model_path,
+                "dataset": librispeech_path,
+                "split": "test-clean",
+                "gpu_id": gpu_id,
+                "kv_press_type": ENV_PRESS_TYPE,
+                "compression_ratio": ENV_COMPRESSION_RATIO,
+                "sample_limit": SAMPLE_LIMIT if SAMPLE_LIMIT > 0 else None
+            },
+            "metrics": metrics,
+            "timing_summary": timing_summary,
+            "results": results
+        }
+        
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(convert_to_serializable(final_results), f, indent=2, ensure_ascii=False)
+        print(f"Results saved to: {output_file}")
+        
+    except Exception as e:
+        print(f"\nFatal error in main: {e}")
+        traceback.print_exc()
+        raise
+
+if __name__ == "__main__":
+    main()

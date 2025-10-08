@@ -1,5 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
+
+
+"""
+VoxCeleb Gender Recognition Model Evaluation Script (Qwen2.5-Omni version)
+For evaluating Qwen2.5-Omni model performance on VoxCeleb gender recognition tasks
+"""
 
 import os
 import sys
@@ -29,9 +34,11 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 import random
 import argparse
 
+
 random.seed(42)
 
-sys.path.append("/data/to/your/Qwen_2.5/folder")
+
+sys.path.append("path/to/your/Modeling")
 from modeling_qwen2_5_omni import (
     Qwen2_5OmniForConditionalGeneration,
 )
@@ -39,16 +46,22 @@ from processing_qwen2_5_omni import(
     Qwen2_5OmniProcessor
 )
 
+
 from qwen_omni_utils import process_mm_info
+
 
 _AUDIO_TOKEN_ID = 151646          
 _AUDIO_BOS_TOKEN_ID = 151647      
 _AUDIO_EOS_TOKEN_ID = 151648      
 
+
+
+
 try:
     from qwen_omni_utils import process_mm_info
 except ImportError:
     def process_mm_info(messages, use_audio_in_video=True):
+        """Simplified multimodal information processing function"""
         audios = []
         images = []
         videos = []
@@ -59,45 +72,56 @@ except ImportError:
                     if content_item.get("type") == "audio":
                         audio_data = content_item.get("audio")
                         if isinstance(audio_data, str):
+                            
                             audio = prepare_audio_for_qwen_omni(audio_data)
                             audios.append(audio)
                         else:
+                            
                             audios.append(audio_data)
         
         return audios, images, videos
 
+
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:98"
+
 
 logging.set_verbosity_error()
 warnings.filterwarnings("ignore")
+
 
 gpu_temp = os.environ.get("CUDA_VISIBLE_DEVICES")
 gpu_id = gpu_temp[-1] if gpu_temp else "0"
 print(f"Using GPU ID: {gpu_id}")
 
-prune_layer_idx = int(os.environ.get("PRUNE_LAYER_IDX", 2))
+
+prune_layer_idx = int(os.environ.get("PRUNE_LAYER_IDX", 1))
 prune_ratio = float(os.environ.get("PRUNE_RATIO", 0))
 prune_method = os.environ.get("PRUNE_METHOD", "base")
+
 
 use_random = (prune_method == "random")
 use_frame = (prune_method == "frame")
 if use_random == False and use_frame == False:
     prune_method = "fast_v"
 
+
 if prune_ratio == 0:
     method_is = "base"
 else:
     method_is = prune_method
 
+
 sample_limit = int(os.environ.get("SAMPLE_LIMIT", 0))
 if sample_limit > 0:
     print(f"Sample limit set to: {sample_limit}")
 
-data_path_root = '/data/to/your/dataset/path//VoxCeleb/concatenated_audio'  
+
+data_path_root = '/path/to/your/subsetVoxCeleb/concatenated_audio'  
 result_dir = './Vox_Results'
 os.makedirs(result_dir, exist_ok=True)
 
 def get_gpu_memory_usage():
+    """获取GPU内存使用情况"""
     if torch.cuda.is_available():
         allocated = torch.cuda.memory_allocated() / 1024**3  
         reserved = torch.cuda.memory_reserved() / 1024**3    
@@ -105,6 +129,8 @@ def get_gpu_memory_usage():
     return 0, 0
 
 def calculate_metrics(predictions, ground_truths):
+    """Calculate classification metrics: accuracy, precision, recall, and F1 score"""
+    
     valid_pairs = [(p, t) for p, t in zip(predictions, ground_truths) 
                    if p in ['male', 'female'] and t in ['male', 'female']]
     
@@ -120,9 +146,11 @@ def calculate_metrics(predictions, ground_truths):
     
     valid_predictions, valid_ground_truths = zip(*valid_pairs)
     
+    
     label_map = {'male': 0, 'female': 1}
     y_true = [label_map[label] for label in valid_ground_truths]
     y_pred = [label_map[label] for label in valid_predictions]
+    
     
     accuracy = accuracy_score(y_true, y_pred)
     precision = precision_score(y_true, y_pred, average='weighted', zero_division=0)
@@ -139,6 +167,7 @@ def calculate_metrics(predictions, ground_truths):
     }
 
 class GlobalTimingStats:
+    """Global timing statistics class, not categorized by folder"""
     def __init__(self):
         self.samples = 0
         self.total_prefill_time = 0.0
@@ -152,6 +181,7 @@ class GlobalTimingStats:
         self.total_decode_time += decode_time
         self.total_tokens += output_tokens
         
+        
         self.timing_records.append({
             "prefill_time": prefill_time,
             "decode_time": decode_time,
@@ -161,6 +191,7 @@ class GlobalTimingStats:
         })
     
     def get_summary(self):
+        """获取统计摘要"""
         if self.samples == 0:
             return {
                 "samples": 0,
@@ -183,6 +214,7 @@ class GlobalTimingStats:
         }
     
     def export_to_json(self, output_file):
+        """导出统计数据到JSON文件"""
         result = {
             "global_summary": self.get_summary(),
             "detailed_records": self.timing_records
@@ -194,28 +226,34 @@ class GlobalTimingStats:
         return output_file
     
     def print_summary(self):
+        """打印统计摘要"""
         summary = self.get_summary()
-        print(f"\n=== Timing Statistics Summary ===")
-        print(f"Valid samples: {summary['samples']}")
-        print(f"Average Prefill time: {summary['avg_prefill_time']:.4f} seconds")
-        print(f"Average Decode time: {summary['avg_decode_time']:.4f} seconds")
-        print(f"Average total time: {summary['avg_total_time']:.4f} seconds")
-        print(f"Average tokens/sec: {summary['avg_tokens_per_sec']:.2f}")
+        print(f"\n=== 时间统计摘要 ===")
+        print(f"有效样本数: {summary['samples']}")
+        print(f"平均Prefill时间: {summary['avg_prefill_time']:.4f}秒")
+        print(f"平均Decode时间: {summary['avg_decode_time']:.4f}秒")
+        print(f"平均总时间: {summary['avg_total_time']:.4f}秒")
+        print(f"平均tokens/秒: {summary['avg_tokens_per_sec']:.2f}")
 
 def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
+    """Process audio files according to Qwen2.5-Omni requirements"""
     
     try:
+        
         try:
             audio, sr = librosa.load(audio_path, sr=target_sr, mono=True)
-            print(f"Successfully loaded with librosa: shape={audio.shape}, sample_rate={sr}Hz")
+            print(f"Successfully loaded with librosa: shape={audio.shape}, sample rate={sr}Hz")
         except Exception as e:
-            print(f"Librosa loading failed: {e}")
+            print(f"Failed to load with librosa: {e}")
+            
             
             try:
                 audio, sample_rate = sf.read(audio_path)
                 
+                
                 if len(audio.shape) > 1 and audio.shape[1] > 1:
                     audio = np.mean(audio, axis=1)
+                
                 
                 if sample_rate != target_sr:
                     from scipy import signal
@@ -223,10 +261,11 @@ def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
                     
                 audio = audio.astype(np.float32)
                 sr = target_sr
-                print(f"Soundfile processing successful: shape={audio.shape}, sample_rate={sr}Hz")
+                print(f"soundfile处理成功: 形状={audio.shape}, 采样率={sr}Hz")
                 
             except Exception as e:
-                print(f"Soundfile loading also failed: {e}")
+                print(f"soundfile加载也失败: {e}")
+                
                 
                 try:
                     from scipy.io import wavfile
@@ -234,7 +273,7 @@ def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
                     with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
                         temp_wav = temp_file.name
                     
-                    print(f"Using ffmpeg conversion: {audio_path} -> {temp_wav}")
+                    print(f"使用ffmpeg转换: {audio_path} -> {temp_wav}")
                     subprocess.run([
                         'ffmpeg', '-y', '-i', audio_path,
                         '-ar', str(target_sr), '-ac', '1',
@@ -247,17 +286,19 @@ def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
                         audio = audio / 32768.0
                     os.remove(temp_wav)
                     sr = target_sr
-                    print(f"FFmpeg conversion successful: shape={audio.shape}, sample_rate={sr}Hz")
+                    print(f"ffmpeg转换成功: 形状={audio.shape}, 采样率={sr}Hz")
                     
                 except Exception as e:
-                    print(f"FFmpeg conversion failed: {e}")
+                    print(f"ffmpeg转换失败: {e}")
                     audio = np.zeros(target_sr * 3, dtype=np.float32)  
                     sr = target_sr
-                    print("Generated silence as replacement audio")
+                    print("生成静音替代音频")
+        
         
         if len(audio) == 0:
-            print("Warning: audio is empty, creating 3 seconds of silence")
+            print("警告: 音频为空，创建3秒静音")
             audio = np.zeros(target_sr * 3, dtype=np.float32)
+        
         
         audio = audio.astype(np.float32)
         max_val = np.abs(audio).max()
@@ -267,12 +308,14 @@ def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
         return audio
         
     except Exception as e:
-        print(f"Audio processing error: {e}")
+        print(f"音频处理出错: {e}")
         traceback.print_exc()
         silence = np.zeros(target_sr * 3, dtype=np.float32)
         return silence
 
 def load_concatenated_audio_dataset(root_dir, sample_limit=0):
+    """Load dataset from concatenated_audio directory, based on gender_id_task_meta.json, and balance male and female sample counts"""
+    
     meta_file = os.path.join(root_dir, "gender_id_task_meta.json")
     with open(meta_file, "r", encoding="utf-8") as f:
         metadata = json.load(f)
@@ -280,16 +323,21 @@ def load_concatenated_audio_dataset(root_dir, sample_limit=0):
     all_samples = []
     print(f"Loaded {len(metadata)} sample metadata from {meta_file}")
     
+    
     for item in metadata:
+        
         rel_path = item["path"]
         wav_path = os.path.join(root_dir, "wav", rel_path)
         
+        
         if not os.path.exists(wav_path):
-            print(f"Warning: file does not exist: {wav_path}")
+            print(f"警告: 文件不存在:{wav_path}")
             continue
+        
         
         speaker_id = item["speaker_id_original"]
         gender = item["answer_gt"].lower().strip()  
+        
         
         all_samples.append({
             "speaker_id": speaker_id,
@@ -302,18 +350,23 @@ def load_concatenated_audio_dataset(root_dir, sample_limit=0):
             "task": "Speaker_Gender_Identification"
         })
     
-    print(f"Total loaded {len(all_samples)} valid audio samples")
+    print(f"总计加载了 {len(all_samples)} 个有效音频样本")
+    
     
     male_samples = [sample for sample in all_samples if sample["gender"].lower() == "male"]
     female_samples = [sample for sample in all_samples if sample["gender"].lower() == "female"]
-    print(f"Original sample count: male={len(male_samples)}, female={len(female_samples)}")
+    print(f"原始样本数量: 男性={len(male_samples)}, 女性={len(female_samples)}")
+    
     
     min_samples_per_gender = min(len(male_samples), len(female_samples))
     
+    
     if sample_limit > 0:
+        
         max_per_gender = sample_limit // 2
         min_samples_per_gender = min(min_samples_per_gender, max_per_gender)
-        print(f"Applied sample limit: maximum {min_samples_per_gender} samples per gender")
+        print(f"Apply sample limit: maximum {min_samples_per_gender} samples per gender")
+    
     
     if len(male_samples) > min_samples_per_gender:
         male_samples = random.sample(male_samples, min_samples_per_gender)
@@ -321,37 +374,46 @@ def load_concatenated_audio_dataset(root_dir, sample_limit=0):
     if len(female_samples) > min_samples_per_gender:
         female_samples = random.sample(female_samples, min_samples_per_gender)
     
+    
     balanced_samples = male_samples + female_samples
+    
     
     random.shuffle(balanced_samples)
     
-    print(f"Final sample count: male={len(male_samples)}, female={len(female_samples)}, total={len(balanced_samples)}")
+    print(f"Final sample counts: male={len(male_samples)}, female={len(female_samples)}, total={len(balanced_samples)}")
     
     return balanced_samples
 
 def extract_gender_answer(text, choice_a="male", choice_b="female"):
+    """Extract gender answer from model output text, handling direct a/b responses"""
     text_lower = text.lower().strip()
+    
     
     choice_a_lower = choice_a.lower().strip() 
     choice_b_lower = choice_b.lower().strip()
+    
     
     if text_lower == 'a' or text_lower.startswith('a.') or text_lower.startswith('a)'):
         return choice_a_lower
     if text_lower == 'b' or text_lower.startswith('b.') or text_lower.startswith('b)'):
         return choice_b_lower
         
+    
     if "option a" in text_lower or "choice a" in text_lower or "a)" in text_lower:
         return choice_a_lower
     if "option b" in text_lower or "choice b" in text_lower or "b)" in text_lower:
         return choice_b_lower
+    
     
     if choice_a_lower in text_lower and choice_b_lower not in text_lower:
         return choice_a_lower
     if choice_b_lower in text_lower and choice_a_lower not in text_lower:
         return choice_b_lower
     
+    
     import re
     if choice_a_lower == "male" and choice_b_lower == "female":
+        
         male_match = re.search(r'\bmale\b', text_lower) is not None
         female_match = re.search(r'\bfemale\b', text_lower) is not None
         
@@ -360,26 +422,29 @@ def extract_gender_answer(text, choice_a="male", choice_b="female"):
         if female_match and not male_match:
             return "female"
     
+    
     return ""
 
 def main():
     print(f"\n=== VoxCeleb Gender Recognition Evaluation Configuration (Qwen2.5-Omni) ===")
     print(f"GPU ID: {gpu_id}")
-    print(f"Pruning layer index: {prune_layer_idx}")
-    print(f"Pruning ratio: {prune_ratio}")
-    print(f"Pruning method: {method_is}")
+    print(f"Prune layer index: {prune_layer_idx}")
+    print(f"Prune ratio: {prune_ratio}")
+    print(f"Prune method: {method_is}")
     print(f"Data path: {data_path_root}")
     if sample_limit > 0:
         print(f"Sample limit: {sample_limit}")
     print("=" * 40)
+    
     
     output_file = f'{result_dir}/VoxCeleb_results_qwen25_gpu{gpu_id}_{method_is}_prune_{prune_ratio}.jsonl'
     timing_output_file = f'{result_dir}/VoxCeleb_timing_stats_qwen25_gpu{gpu_id}_{method_is}_prune_{prune_ratio}.json'
     print(f"Results will be saved to: {output_file}")
     print(f"Timing statistics will be saved to: {timing_output_file}")
     
+    
     print("Loading Qwen2.5-Omni model...")
-    model_path = "/data/to/your/Qwen_2.5_Model/path/"
+    model_path = "/path/to/your/model"
     device_map = {"": 0}  
     
     processor = Qwen2_5OmniProcessor.from_pretrained(
@@ -395,11 +460,14 @@ def main():
     )
     model.disable_talker()
     
+    
     if hasattr(model, 'thinker') and hasattr(model.thinker, 'model') and hasattr(model.thinker.model, 'config'):
         model.thinker.model.config.sparse_attention_config = {'prune_ratio': prune_ratio, 'prune_method': prune_method}
         print(f"Sparse attention config set: prune_ratio={prune_ratio}, prune_method={prune_method}")
     else:
         print("Warning: thinker model config not found, using default parameters")
+    
+    
     
 
     if not hasattr(model.thinker.model.config, 'image_layer_idx'):
@@ -418,26 +486,33 @@ def main():
         model.thinker.model.config.frame = False
     print(f"Initialized thinker.model.config pruning configuration parameters")
 
+    
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     
     print("Model loaded successfully")
     
+    
     timing_stats = GlobalTimingStats()
+    
     
     samples = load_concatenated_audio_dataset(data_path_root, sample_limit)
     
+    
     male_count = sum(1 for s in samples if s["gender"].lower() == "male")
     female_count = sum(1 for s in samples if s["gender"].lower() == "female")
-    print(f"Gender statistics: male samples={male_count}, female samples={female_count}")
+    print(f"性别统计: 男性样本={male_count}, 女性样本={female_count}")
+    
     
     all_predictions = []
     all_ground_truths = []
     all_sample_results = []
     
+    
     is_screen_env = not sys.stdout.isatty() or 'TERM' in os.environ and os.environ['TERM'] == 'screen'
     if is_screen_env:
-        print("Detected screen or non-interactive environment, using simplified progress display")
+        print("检测到screen或非交互式环境，使用简化进度显示")
+    
     
     tqdm_kwargs = {
         'ascii': True,      
@@ -445,29 +520,36 @@ def main():
         'file': sys.stdout    
     }
     
-    allocated, reserved = get_gpu_memory_usage()
-    print(f"GPU memory after model loading - Allocated: {allocated:.2f}GB, Reserved: {reserved:.2f}GB")
     
-    print(f"Starting to process {len(samples)} samples...")
-    with tqdm(total=len(samples), desc="Processing VoxCeleb samples (Qwen2.5)", position=0, leave=True, **tqdm_kwargs) as pbar:
+    allocated, reserved = get_gpu_memory_usage()
+    print(f"模型加载完成后GPU内存 - 已分配: {allocated:.2f}GB, 已保留: {reserved:.2f}GB")
+    
+    
+    print(f"开始处理 {len(samples)} 个样本...")
+    with tqdm(total=len(samples), desc="处理VoxCeleb样本 (Qwen2.5)", position=0, leave=True, **tqdm_kwargs) as pbar:
+        
         
         for i, sample in enumerate(samples):
             wav_path = sample['wav_path']
             speaker_id = sample["speaker_id"]
             ground_truth = sample["gender"].lower().strip()
             
+            
             instruction = "Listen to this audio and identify the speaker's gender. Is this a male or female voice? If it is a male, answer 'a'. If it is a female, answer 'b'. Answer with only 'a' or 'b'."
             
             try:
+                
                 audio_np = prepare_audio_for_qwen_omni(wav_path, target_sr=16000)
                 
                 if audio_np is None:
                     print(f"Skipping sample {i}: unable to load audio {wav_path}")
                     continue
                 
+                
                 task_instruction = "You are a helpful assistant that analyzes speech audio to classify speaker gender. Please listen to the voice carefully and determine the speaker's gender."
                 full_user_prompt = f"{task_instruction}\n\n{instruction}"
 
+                
                 messages = [
                     {
                         "role": "system",
@@ -484,14 +566,18 @@ def main():
                     }
                 ]
                 
+                
                 audios, images, videos = process_mm_info(messages, use_audio_in_video=True)
+                
                 
                 text = processor.apply_chat_template(
                     messages, tokenize=False, add_generation_prompt=True
                 )
                 
+                
                 if isinstance(text, list):
                     text = text[0] if len(text) > 0 else ""
+                
                 
                 inputs = processor(
                     text=text,
@@ -504,24 +590,30 @@ def main():
                 )
                 inputs = inputs.to(model.device).to(model.dtype)
                 
+                
                 audio_token_length = 0
                 audio_token_start = 0
                 input_token_length = inputs.input_ids.shape[1] if hasattr(inputs, 'input_ids') else 0
                 
+                
                 audio_detected = False
+                
                 
                 if hasattr(inputs, 'input_ids'):
                     token_ids = inputs.input_ids[0].tolist()
+                    
                     
                     bos_positions = [i for i, tid in enumerate(token_ids) if tid == _AUDIO_BOS_TOKEN_ID]
                     eos_positions = [i for i, tid in enumerate(token_ids) if tid == _AUDIO_EOS_TOKEN_ID]
                     
                     if bos_positions and eos_positions:
+                        
                         audio_token_start = bos_positions[0]
                         audio_token_end = eos_positions[0]
                         audio_token_length = audio_token_end - audio_token_start + 1
                         
                         audio_detected = True
+                        
                         
                         model.thinker.model.config.image_layer_idx = False  
                         model.thinker.model.config.audio_layer_idx = prune_layer_idx
@@ -535,10 +627,12 @@ def main():
                     model.thinker.model.config.audio_layer_idx = None
                     model.thinker.model.config.audio_prune_ratio = 0
 
+                
                 prefill_start_event = torch.cuda.Event(enable_timing=True)
                 prefill_end_event = torch.cuda.Event(enable_timing=True)
                 
                 prefill_start_event.record()
+                
                 
                 audio_tokens = 0
                 if hasattr(processor.tokenizer, 'audio_bos_token_id') and hasattr(processor.tokenizer, 'audio_eos_token_id'):
@@ -553,6 +647,7 @@ def main():
                                 eos_pos = eos_candidates[0]
                                 audio_tokens += eos_pos - bos_pos - 1
                                 
+                    
                     if hasattr(model, 'thinker') and hasattr(model.thinker, 'model') and hasattr(model.thinker.model, 'config'):
                         if hasattr(model.thinker.model.config, 'sparse_attention_config'):
                             model.thinker.model.config.sparse_attention_config['audio_tokens'] = audio_tokens.item() if hasattr(audio_tokens, 'item') else audio_tokens
@@ -568,6 +663,7 @@ def main():
                     )
                 prefill_end_event.record()
                 
+                
                 decode_start_event = torch.cuda.Event(enable_timing=True)
                 decode_end_event = torch.cuda.Event(enable_timing=True)
                 
@@ -582,13 +678,16 @@ def main():
                 )
                 decode_end_event.record()
                 
+                
                 torch.cuda.synchronize()
                 prefill_time = prefill_start_event.elapsed_time(prefill_end_event) / 1000.0  
                 decode_time = decode_start_event.elapsed_time(decode_end_event) / 1000.0  
                 
+                
                 tokens = out_ids[:, inputs['input_ids'].shape[1]:]
                 output_tokens = len(tokens[0])
                 resp = processor.batch_decode(tokens, skip_special_tokens=True)[0]
+                
                 
                 if not resp.strip():
                     resp = processor.batch_decode(
@@ -598,27 +697,32 @@ def main():
                     )[0]
                     output_tokens = out_ids.shape[1] - inputs["input_ids"].shape[1]
                 
+                
                 predicted_gender = extract_gender_answer(resp, sample.get("choice_a", "male"), sample.get("choice_b", "female"))
                 is_correct = (predicted_gender == ground_truth)
                 
+                
                 if i < 5:
-                    print(f"\n=== Sample {i} Debug Information ===")
-                    print(f"Model raw output: '{resp}'")
-                    print(f"Extracted answer: '{predicted_gender}'")
-                    print(f"Correct answer: '{ground_truth}'")
-                    print(f"Is correct: {is_correct}")
-                    print(f"Output token count: {output_tokens}")
+                    print(f"\n=== 样本 {i} 调试信息 ===")
+                    print(f"模型原始输出: '{resp}'")
+                    print(f"提取的答案: '{predicted_gender}'")
+                    print(f"正确答案: '{ground_truth}'")
+                    print(f"是否正确: {is_correct}")
+                    print(f"输出token数量: {output_tokens}")
                     print("=" * 30)
+                
                 
                 all_predictions.append(predicted_gender)
                 all_ground_truths.append(ground_truth)
+                
                 
                 if i > 0:
                     timing_stats.add_record(prefill_time, decode_time, output_tokens)
                 
             except Exception as e:
-                print(f"Error processing sample {i}: {e}")
+                print(f"处理样本时出错:{i}: {e}")
                 traceback.print_exc()
+                
                 
                 resp = "ERROR"
                 predicted_gender = ""
@@ -627,8 +731,10 @@ def main():
                 decode_time = 0
                 output_tokens = 0
                 
+                
                 all_predictions.append(predicted_gender)
                 all_ground_truths.append(ground_truth)
+            
             
             sample_result = {
                 "audio_file": os.path.basename(wav_path),
@@ -645,58 +751,68 @@ def main():
             
             all_sample_results.append(sample_result)
             
+            
             torch.cuda.empty_cache()
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
+            
             
             if (i + 1) % 10 == 0:
                 gc.collect()
                 torch.cuda.empty_cache()
                 torch.cuda.synchronize()
                 
+                
                 if (i + 1) % 100 == 0:
                     allocated, reserved = get_gpu_memory_usage()
-                    print(f"  [Sample {i+1}] GPU memory - Allocated: {allocated:.2f}GB, Reserved: {reserved:.2f}GB")
+                    print(f"  [样本 {i+1}] GPU内存 - 已分配: {allocated:.2f}GB, 已保留: {reserved:.2f}GB")
+            
             
             current_accuracy = sum(1 for p, t in zip(all_predictions, all_ground_truths) if p == t and p in ['male', 'female'] and t in ['male', 'female']) / max(1, sum(1 for p, t in zip(all_predictions, all_ground_truths) if p in ['male', 'female'] and t in ['male', 'female']))
+            
             
             update_interval = 10 if is_screen_env else 1
             sample_count = i + 1
             
             if sample_count % update_interval == 0 or sample_count == len(samples):
                 pbar.set_postfix({
-                    'Sample': f'{sample_count}/{len(samples)}',
-                    'Accuracy': f'{current_accuracy:.3f}',
-                    'Speaker': speaker_id[:8] + '...' if len(speaker_id) > 8 else speaker_id,
-                    'Predicted': predicted_gender,
-                    'True': ground_truth
+                    '样本': f'{sample_count}/{len(samples)}',
+                    '准确率': f'{current_accuracy:.3f}',
+                    '说话人': speaker_id[:8] + '...' if len(speaker_id) > 8 else speaker_id,
+                    '预测': predicted_gender,
+                    '真实': ground_truth
                 })
                 
                 if is_screen_env:
-                    print(f"  Progress: {sample_count}/{len(samples)} ({sample_count/len(samples)*100:.1f}%), "
-                          f"Accuracy: {current_accuracy:.3f}")
+                    
+                    print(f"  进度: {sample_count}/{len(samples)} ({sample_count/len(samples)*100:.1f}%), "
+                          f"准确率: {current_accuracy:.3f}")
             else:
                 pbar.set_postfix({
-                    'Sample': f'{sample_count}/{len(samples)}',
-                    'Accuracy': f'{current_accuracy:.3f}',
-                    'Speaker': speaker_id[:8] + '...' if len(speaker_id) > 8 else speaker_id,
-                    'Predicted': predicted_gender,
-                    'True': ground_truth
+                    '样本': f'{sample_count}/{len(samples)}',
+                    '准确率': f'{current_accuracy:.3f}',
+                    '说话人': speaker_id[:8] + '...' if len(speaker_id) > 8 else speaker_id,
+                    '预测': predicted_gender,
+                    '真实': ground_truth
                 })
             
             pbar.update()
     
+    
     metrics_result = calculate_metrics(all_predictions, all_ground_truths)
     final_stats = timing_stats.get_summary()
     
+    
     total_samples = len(all_sample_results)
     correct_samples = sum(1 for result in all_sample_results if result['is_correct'])
+    
     
     male_samples = [r for r in all_sample_results if r['ground_truth'] == 'male']
     female_samples = [r for r in all_sample_results if r['ground_truth'] == 'female']
     
     male_correct = sum(1 for r in male_samples if r['is_correct'])
     female_correct = sum(1 for r in female_samples if r['is_correct'])
+    
     
     results = {
         "samples": all_sample_results,
@@ -725,11 +841,14 @@ def main():
         }
     }
     
+    
     json_output_file = f'{result_dir}/VoxCeleb_results_qwen25_gpu{gpu_id}_{method_is}_prune_{prune_ratio}.json'
     with open(json_output_file, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     
+    
     timing_stats.export_to_json(timing_output_file)
+    
     
     print("\n=== Evaluation Results Summary (Qwen2.5-Omni) ===")
     print(f"Total samples: {total_samples}")
@@ -742,7 +861,7 @@ def main():
     print(f"Valid predictions: {metrics_result['valid_samples']}/{metrics_result['total_samples']}")
     
     print(f"\n=== Inference Time Statistics ===")
-    print(f"Statistical sample count: {final_stats['samples']} (excluding first sample)")
+    print(f"Statistical samples: {final_stats['samples']} (excluding first sample)")
     print(f"Average inference time: {final_stats['avg_total_time']:.4f} seconds")
     print(f"Average Prefill time: {final_stats['avg_prefill_time']:.4f} seconds")
     print(f"Average Decode time: {final_stats['avg_decode_time']:.4f} seconds")

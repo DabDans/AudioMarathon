@@ -1,3 +1,11 @@
+
+
+
+"""
+VESUS Emotion Recognition Model Evaluation Script (Qwen2.5-Omni version)
+For evaluating Qwen2.5-Omni model performance on VESUS emotion recognition tasks
+"""
+
 import os
 import sys
 import json
@@ -26,9 +34,11 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 import random
 import argparse
 
+
 random.seed(42)
 
-sys.path.append("/data/to/your/Qwen_2.5/folder")
+
+sys.path.append("path/to/your/Modeling")
 from modeling_qwen2_5_omni import (
     Qwen2_5OmniForConditionalGeneration,
 )
@@ -36,10 +46,11 @@ from processing_qwen2_5_omni import(
     Qwen2_5OmniProcessor
 )
 
+
 from qwen_omni_utils import process_mm_info
 
 def convert_numpy_types(obj):
-    """Recursively convert numpy types to Python native types for JSON compatibility"""
+    """Recursively convert numpy types to Python native types to ensure JSON compatibility"""
     if isinstance(obj, np.integer):
         return int(obj)
     elif isinstance(obj, np.floating):
@@ -55,9 +66,14 @@ def convert_numpy_types(obj):
     else:
         return obj
 
+
 _AUDIO_TOKEN_ID = 151646          
 _AUDIO_BOS_TOKEN_ID = 151647      
 _AUDIO_EOS_TOKEN_ID = 151648      
+
+
+
+
 
 try:
     from qwen_omni_utils import process_mm_info
@@ -74,9 +90,11 @@ except ImportError:
                     if content_item.get("type") == "audio":
                         audio_data = content_item.get("audio")
                         if isinstance(audio_data, str):
+                            
                             audio = prepare_audio_for_qwen_omni(audio_data)
                             audios.append(audio)
                         else:
+                            
                             audios.append(audio_data)
         
         return audios, images, videos
@@ -88,41 +106,49 @@ from processing_qwen2_5_omni import(
     Qwen2_5OmniProcessor
 )
 
+
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:98"
+
 
 logging.set_verbosity_error()
 warnings.filterwarnings("ignore")
+
 
 gpu_temp = os.environ.get("CUDA_VISIBLE_DEVICES")
 gpu_id = gpu_temp[-1] if gpu_temp else "0"
 print(f"Using GPU ID: {gpu_id}")
 
-prune_layer_idx = int(os.environ.get("PRUNE_LAYER_IDX", 2))
+
+prune_layer_idx = int(os.environ.get("PRUNE_LAYER_IDX", 1))
 prune_ratio = float(os.environ.get("PRUNE_RATIO", 0))
 prune_method = os.environ.get("PRUNE_METHOD", "base")
+
 
 use_random = (prune_method == "random")
 use_frame = (prune_method == "frame")
 if use_random == False and use_frame == False:
     prune_method = "fast_v"
 
+
 if prune_ratio == 0:
     method_is = "base"
 else:
     method_is = prune_method
 
+
 sample_limit = int(os.environ.get("SAMPLE_LIMIT", 0))
 if sample_limit > 0:
     print(f"Sample limit set to: {sample_limit}")
 
+
 data_path = os.environ.get("VESUS_DATA_PATH", 
-    "/data/to/your/dataset/path//VESUS")
+    "/path/to/your/subsetVESUS")
 emotion_json_file = os.path.join(data_path, "audio_emotion_dataset.json")
 result_dir = os.environ.get("RESULTS_DIR", './VESUS_Results')
 os.makedirs(result_dir, exist_ok=True)
 
 def get_gpu_memory_usage():
-    """Get GPU memory usage information"""
+    """Get GPU memory usage"""
     if torch.cuda.is_available():
         allocated = torch.cuda.memory_allocated() / 1024**3  
         reserved = torch.cuda.memory_reserved() / 1024**3    
@@ -130,7 +156,8 @@ def get_gpu_memory_usage():
     return 0, 0
 
 def calculate_emotion_metrics(predictions, ground_truths, emotion_labels):
-    """Calculate emotion classification metrics: accuracy, precision, recall and F1 score"""
+    """Calculate emotion classification metrics: accuracy, precision, recall, and F1 score"""
+    
     valid_pairs = [(p, t) for p, t in zip(predictions, ground_truths) 
                    if p in emotion_labels and t in emotion_labels]
     
@@ -146,9 +173,11 @@ def calculate_emotion_metrics(predictions, ground_truths, emotion_labels):
     
     valid_predictions, valid_ground_truths = zip(*valid_pairs)
     
+    
     label_map = {label: idx for idx, label in enumerate(sorted(emotion_labels))}
     y_true = [label_map[label] for label in valid_ground_truths]
     y_pred = [label_map[label] for label in valid_predictions]
+    
     
     accuracy = accuracy_score(y_true, y_pred)
     precision = precision_score(y_true, y_pred, average='weighted', zero_division=0)
@@ -166,7 +195,7 @@ def calculate_emotion_metrics(predictions, ground_truths, emotion_labels):
     }
 
 class VESUSTimingStats:
-    """Track inference time statistics for VESUS emotion recognition tasks, supporting CUDA Event accurate measurement"""
+    """Track inference timing statistics for VESUS emotion recognition tasks, supporting CUDA Event precise measurement"""
     def __init__(self):
         self.timing_records = []
         self.emotion_stats = defaultdict(list)
@@ -224,6 +253,7 @@ class VESUSTimingStats:
             "avg_tokens_per_sec": avg_tokens_per_sec
         }
         
+        
         emotion_summaries = {}
         for emotion, records in self.emotion_stats.items():
             if len(records) > 0:
@@ -258,26 +288,31 @@ class VESUSTimingStats:
         return output_file
 
 def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
-    """Process audio file according to Qwen2.5-Omni requirements"""
+    """Process audio files according to Qwen2.5-Omni requirements"""
     
     try:
+        
         full_audio_path = os.path.join(data_path, audio_path)
         
         if not os.path.exists(full_audio_path):
-            print(f"Audio file does not exist: {full_audio_path}")
+            print(f"Does not exist: {full_audio_path}")
             return None
+        
         
         try:
             audio, sr = librosa.load(full_audio_path, sr=target_sr, mono=True)
-            print(f"Loaded successfully with librosa: shape={audio.shape}, sample rate {sr}Hz")
+            print(f"Librosa loading successful: shape={audio.shape}, sample rate={sr}Hz")
         except Exception as e:
             print(f"Librosa loading failed: {e}")
+
             
             try:
                 audio, sample_rate = sf.read(full_audio_path)
                 
+                
                 if len(audio.shape) > 1 and audio.shape[1] > 1:
                     audio = np.mean(audio, axis=1)
+                
                 
                 if sample_rate != target_sr:
                     from scipy import signal
@@ -285,15 +320,17 @@ def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
                     
                 audio = audio.astype(np.float32)
                 sr = target_sr
-                print(f"Processed successfully with soundfile: shape={audio.shape}, sample rate {sr}Hz")
+                print(f"Soundfile loading successful: shape={audio.shape}, sample rate={sr}Hz")
                 
             except Exception as e:
                 print(f"Soundfile loading also failed: {e}")
+                
                 audio = np.zeros(target_sr * 3, dtype=np.float32)
                 sr = target_sr
-                print("Generated silent audio as fallback")
-        
+                print("Generating silence as backup audio")
 
+
+        
         audio = audio.astype(np.float32)
         
         return audio
@@ -303,7 +340,6 @@ def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
         traceback.print_exc()
         silence = np.zeros(target_sr * 3, dtype=np.float32)
         return silence
-
 def load_vesus_dataset(json_file_path):
     
     if not os.path.exists(json_file_path):
@@ -321,40 +357,46 @@ def load_vesus_dataset(json_file_path):
         
         for item in data:
             if isinstance(item, dict) and all(key in item for key in ['path', 'question', 'answer_gt']):
+
                 person_id_str = str(item.get('person_id', '')).strip()
+                
                 emotion_label_lower = str(item.get('emotion_label', '')).strip().lower()
+
 
                 if person_id_str in ['2', '10'] and emotion_label_lower == 'happy':
                     filtered_count += 1
                     continue
                 
+
+                
                 valid_samples.append(item)
 
-        print(f"Filtered {filtered_count} samples (person 2 and person 10 with happy emotion)")
+        print(f"Filtered {filtered_count} samples (person 2 and person 10's happy emotion)")
         print(f"Loaded {len(valid_samples)} valid samples")
 
+        
         emotion_counts = defaultdict(int)
         person_emotion_counts = defaultdict(int)
         for sample in valid_samples:
             emotion = sample.get('emotion_label', 'unknown')
             person = sample.get('person_id', 'unknown')
             emotion_counts[emotion] += 1
-            person_emotion_counts[str(person)] += 1 
-        
+            person_emotion_counts[str(person)] += 1
         print(f"Emotion distribution: {dict(emotion_counts)}")
         print(f"Person sample count statistics:")
         for person, count in person_emotion_counts.items():
             print(f"  person {person}: {count} samples")
-        
+
         return valid_samples
         
     except Exception as e:
-        print(f"Failed to load dataset: {e}")
+        print(f"Loading dataset failed: {e}")
         return []
     
 def extract_emotion_answer(text, choices):
     """Extract emotion answer from model output text"""
     text_lower = text.lower().strip()
+    
     
     if text_lower == 'a' or text_lower.startswith('a.') or text_lower.startswith('a)'):
         return "A"
@@ -364,6 +406,7 @@ def extract_emotion_answer(text, choices):
         return "C"
     if text_lower == 'd' or text_lower.startswith('d.') or text_lower.startswith('d)'):
         return "D"
+    
     
     option_patterns = {
         'A': ["option a", "choice a", "a)", "(a)"],
@@ -376,6 +419,7 @@ def extract_emotion_answer(text, choices):
         if any(pattern in text_lower for pattern in patterns):
             return option
     
+    
     emotion_keywords = {
         'angry': ['anger', 'frustrated', 'mad', 'furious'],
         'happy': ['joy', 'cheerful', 'pleased', 'delighted'],
@@ -383,6 +427,7 @@ def extract_emotion_answer(text, choices):
         'fearful': ['fear', 'anxiety', 'scared', 'afraid'],
         'monotone': ['flat', 'emotionless', 'neutral', 'bland']
     }
+
     
     for choice_key in ['choice_a', 'choice_b', 'choice_c', 'choice_d']:
         if choice_key in choices:
@@ -395,13 +440,14 @@ def extract_emotion_answer(text, choices):
     return ""
 
 def create_emotion_prompt(sample):
-    """Create emotion recognition task prompt (consistent with original version)"""
+    
     question = sample.get("question", "What emotion is expressed in this audio segment?")
     choice_a = sample.get("choice_a", "")
     choice_b = sample.get("choice_b", "")
     choice_c = sample.get("choice_c", "")
     choice_d = sample.get("choice_d", "")
     
+ 
     prompt = f"""{question}
 
 A) {choice_a}
@@ -416,22 +462,23 @@ Please select the correct answer (A, B, C, or D)."""
 def main():
     print(f"\n=== VESUS Emotion Recognition Evaluation Configuration (Qwen2.5-Omni) ===")
     print(f"GPU ID: {gpu_id}")
-    print(f"Pruning layer index: {prune_layer_idx}")
-    print(f"Pruning ratio: {prune_ratio}")
-    print(f"Pruning method: {method_is}")
+    print(f"Prune layer index: {prune_layer_idx}")
+    print(f"Prune ratio: {prune_ratio}")
+    print(f"Prune method: {method_is}")
     print(f"Data path: {data_path}")
     print(f"JSON file: {emotion_json_file}")
     if sample_limit > 0:
         print(f"Sample limit: {sample_limit}")
     print("=" * 40)
-    
+
     output_file = f'{result_dir}/VESUS_results_qwen25_gpu{gpu_id}_{method_is}_prune_{prune_ratio}.json'
     timing_output_file = f'{result_dir}/VESUS_timing_stats_qwen25_gpu{gpu_id}_{method_is}_prune_{prune_ratio}.json'
     print(f"Results will be saved to: {output_file}")
     print(f"Timing statistics will be saved to: {timing_output_file}")
-    
-    print("Loading Qwen2.5-Omni model...")
-    model_path = "/data/to/your/Qwen_2.5_Model/path/"
+
+
+
+    model_path = "/path/to/your/model"
     device_map = {"": 0}  
     
     processor = Qwen2_5OmniProcessor.from_pretrained(
@@ -448,13 +495,15 @@ def main():
     model.eval()
     model.disable_talker()  
     
+
     if hasattr(model, 'thinker') and hasattr(model.thinker, 'model') and hasattr(model.thinker.model, 'config'):
         model.thinker.model.config.sparse_attention_config = {'prune_ratio': prune_ratio, 'prune_method': prune_method}
         print(f"Sparse attention config set: prune_ratio={prune_ratio}, prune_method={prune_method}")
     else:
         print("Warning: thinker model config not found, using default parameters")
-    
+
     if hasattr(model, 'thinker') and hasattr(model.thinker, 'model'):
+
         if not hasattr(model.thinker.model.config, 'image_layer_idx'):
             model.thinker.model.config.image_layer_idx = False
         if not hasattr(model.thinker.model.config, 'audio_layer_idx'):
@@ -469,22 +518,24 @@ def main():
             model.thinker.model.config.random = False
         if not hasattr(model.thinker.model.config, 'frame'):
             model.thinker.model.config.frame = False
-        print(f"Initialized thinker.model.config pruning configuration parameters")
+
+
 
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     
-    print("Model loaded successfully")
+        
 
     samples = load_vesus_dataset(emotion_json_file)
     
     if not samples:
-        print("Error: No data samples found")
+        print("Wrong: No valid samples found, exiting.")
         return
-    
+
     if sample_limit > 0 and len(samples) > sample_limit:
         samples = samples[:sample_limit]
-        print(f"Applied sample limit, processing {len(samples)} samples")
+        print(f"Sample limit applied, processing {len(samples)} samples")
+
 
     timing_stats = VESUSTimingStats()
 
@@ -497,38 +548,46 @@ def main():
     if is_screen_env:
         print("Detected screen or non-interactive environment, using simplified progress display")
 
+
     tqdm_kwargs = {
         'ascii': True,        
         'dynamic_ncols': True, 
         'file': sys.stdout    
     }
 
-    print(f"Starting evaluation of {len(samples)} samples...")
+    print(f"开始评估{len(samples)} 个样本...")
+    
     
     allocated, reserved = get_gpu_memory_usage()
-    print(f"GPU memory after model loading - Allocated {allocated:.2f}GB, Reserved {reserved:.2f}GB")
+    print(f"模型加载完成后GPU内存 - 已分配 {allocated:.2f}GB, 已保留 {reserved:.2f}GB")
 
-    progress_bar = tqdm(enumerate(samples), total=len(samples), desc="VESUS Evaluation (Qwen2.5)", **tqdm_kwargs)
+    progress_bar = tqdm(enumerate(samples), total=len(samples), desc="VESUS评估 (Qwen2.5)", **tqdm_kwargs)
 
     for idx, sample in progress_bar:
         try:
+            
             audio_path = sample.get("path", "")
+            
             
             full_audio_path = os.path.join(data_path, audio_path)
             if not os.path.exists(full_audio_path):
-                print(f"Skipping sample {idx+1}/{len(samples)}: Audio file does not exist - {full_audio_path}")
+                print(f"跳过样本 {idx+1}/{len(samples)}: 音频文件不存在 - {full_audio_path}")
                 progress_bar.update()
                 continue
+            
             
             emotion_label = sample.get("emotion_label", "unknown")
             person_id = sample.get("person_id", "unknown")
             answer_gt = sample.get("answer_gt", "").upper()
             
+            
             prompt_text = create_emotion_prompt(sample)
 
+            
             task_instruction = "You are a helpful assistant that analyzes speech audio to recognize emotions. Please listen to the voice carefully and identify the emotional state of the speaker."
             full_user_prompt = f"{task_instruction}\n\n{prompt_text}"
 
+            
             messages = [
                 {
                     "role": "system",
@@ -545,14 +604,18 @@ def main():
                 }
             ]
             
+            
             audios, images, videos = process_mm_info(messages, use_audio_in_video=True)
+            
             
             text = processor.apply_chat_template(
                 messages, tokenize=False, add_generation_prompt=True
             )
             
+            
             if isinstance(text, list):
                 text = text[0] if len(text) > 0 else ""
+            
             
             inputs = processor(
                 text=text,
@@ -565,26 +628,32 @@ def main():
             )
             inputs = inputs.to(model.device).to(model.dtype)
             
+            
             audio_token_length = 0
             audio_token_start = 0
             input_token_length = inputs.input_ids.shape[1] if hasattr(inputs, 'input_ids') else 0
             
+            
             audio_detected = False
+            
             
             if hasattr(inputs, 'input_ids'):
                 token_ids = inputs.input_ids[0].tolist()
+                
                 
                 bos_positions = [i for i, tid in enumerate(token_ids) if tid == _AUDIO_BOS_TOKEN_ID]
                 eos_positions = [i for i, tid in enumerate(token_ids) if tid == _AUDIO_EOS_TOKEN_ID]
                 
                 if bos_positions and eos_positions:
+                    
                     audio_token_start = bos_positions[0]
                     audio_token_end = eos_positions[0]
                     audio_token_length = audio_token_end - audio_token_start + 1
                     
                     audio_detected = True
                     
-                    print(f"Sample {idx+1}: Detected audio tokens - Start position: {audio_token_start}, Length: {audio_token_length}")
+                    print(f"样本 {idx+1}: 检测到音频token - 开始位置: {audio_token_start}, 长度: {audio_token_length}")
+                    
                     
                     if hasattr(model, 'thinker') and hasattr(model.thinker, 'model'):
                         model.thinker.model.config.image_layer_idx = False  
@@ -596,17 +665,19 @@ def main():
                         model.thinker.model.config.frame = use_frame 
                     
             if not audio_detected:
-                print(f"Sample {idx+1}: No audio tokens detected")
+                print(f"样本 {idx+1}: 未检测到音频token")
                 if hasattr(model, 'thinker') and hasattr(model.thinker, 'model'):
                     model.thinker.model.config.audio_layer_idx = None
                     model.thinker.model.config.audio_prune_ratio = 0
 
+            
             prefill_start_event = torch.cuda.Event(enable_timing=True)
             prefill_end_event = torch.cuda.Event(enable_timing=True)
             
             prefill_start_event.record()
             
             with torch.no_grad():
+                
                 _ = model.generate(
                     **inputs,
                     use_audio_in_video=True,
@@ -616,6 +687,7 @@ def main():
                     pad_token_id=processor.tokenizer.eos_token_id
                 )
             prefill_end_event.record()
+            
             
             total_start_event = torch.cuda.Event(enable_timing=True)
             total_end_event = torch.cuda.Event(enable_timing=True)
@@ -632,9 +704,11 @@ def main():
                 )
             total_end_event.record()
             
+            
             torch.cuda.synchronize()
             prefill_time = prefill_start_event.elapsed_time(prefill_end_event) / 1000.0  
             total_gpu_time = total_start_event.elapsed_time(total_end_event) / 1000.0  
+            
             
             response = processor.batch_decode(
                 output, 
@@ -642,12 +716,15 @@ def main():
                 clean_up_tokenization_spaces=False
             )[0]
             
+            
             if "assistant\n" in response:
                 assistant_start = response.rfind("assistant\n") + len("assistant\n")
                 response = response[assistant_start:].strip()
             
+            
             output_tokens = len(output[0]) - len(inputs["input_ids"][0])
             input_tokens = len(inputs["input_ids"][0])
+            
             
             choices = {
                 'choice_a': sample.get('choice_a', ''),
@@ -657,9 +734,11 @@ def main():
             }
             predicted_answer = extract_emotion_answer(response, choices)
             
+            
             is_correct = (predicted_answer == answer_gt)
             if is_correct:
                 total_correct += 1
+            
             
             emotion_stats[emotion_label]["total"] += 1
             person_stats[person_id]["total"] += 1
@@ -667,6 +746,7 @@ def main():
             if is_correct:
                 emotion_stats[emotion_label]["correct"] += 1
                 person_stats[person_id]["correct"] += 1
+            
             
             result = {
                 "idx": idx,
@@ -686,13 +766,16 @@ def main():
             }
             results.append(result)
             
+            
             if idx > 0:
                 timing_stats.add_record(
                     prefill_time, total_gpu_time, output_tokens, input_tokens,
                     emotion_label, person_id
                 )
             
+            
             current_accuracy = total_correct / (idx + 1) if (idx + 1) > 0 else 0
+            
             
             update_interval = 10 if is_screen_env else 1
             sample_count = idx + 1
@@ -706,8 +789,9 @@ def main():
                 })
                 
                 if is_screen_env:
-                    print(f"  Progress: {sample_count}/{len(samples)} ({sample_count/len(samples)*100:.1f}%), "
-                          f"Accuracy: {current_accuracy:.3f}")
+                    
+                    print(f"  进度: {sample_count}/{len(samples)} ({sample_count/len(samples)*100:.1f}%), "
+                          f"准确率: {current_accuracy:.3f}")
             else:
                 progress_bar.set_postfix({
                     'acc': f'{current_accuracy:.3f}',
@@ -716,27 +800,32 @@ def main():
                     'emotion': emotion_label[:8]
                 })
             
+            
             torch.cuda.empty_cache()
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
+            
             
             if (idx + 1) % 10 == 0:
                 gc.collect()
                 torch.cuda.empty_cache()
                 torch.cuda.synchronize()
                 
+                
                 if (idx + 1) % 100 == 0:
                     allocated, reserved = get_gpu_memory_usage()
-                    print(f"  [Sample {idx+1}] GPU Memory - Allocated: {allocated:.2f}GB, Reserved: {reserved:.2f}GB")
+                    print(f"  [样本 {idx+1}] GPU内存 - 已分配: {allocated:.2f}GB, 已保留: {reserved:.2f}GB")
             
         except Exception as e:
             error_msg = str(e)
-            print(f"Error processing sample {idx}: {error_msg}")
+            print(f"处理样本 {idx} 时出错: {error_msg}")
             traceback.print_exc()
             
+            
             if "No such file" in error_msg or "does not exist" in error_msg or "FileNotFoundError" in error_msg:
-                print(f"Skipping sample {idx+1}/{len(samples)}: Audio file processing failed - {sample.get('path', '')}")
+                print(f"跳过样本 {idx+1}/{len(samples)}: 音频文件处理失败 - {sample.get('path', '')}")
                 continue
+            
             
             result = {
                 "idx": idx,
@@ -757,20 +846,25 @@ def main():
             }
             results.append(result)
             
+            
             torch.cuda.empty_cache()
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
             continue
 
+    
     total_samples = len(results)
     overall_accuracy = total_correct / total_samples if total_samples > 0 else 0.0
 
+    
     all_predictions = [result["predicted_answer"] for result in results]
     all_ground_truths = [result["answer_gt"] for result in results]
     all_emotion_labels = list(set(all_ground_truths))
     
+    
     emotion_metrics = calculate_emotion_metrics(all_predictions, all_ground_truths, all_emotion_labels)
 
+    
     emotion_accuracies = {}
     for emotion, stats in emotion_stats.items():
         if stats["total"] > 0:
@@ -778,6 +872,7 @@ def main():
         else:
             emotion_accuracies[emotion] = 0.0
 
+    
     person_accuracies = {}
     for person, stats in person_stats.items():
         if stats["total"] > 0:
@@ -785,6 +880,7 @@ def main():
         else:
             person_accuracies[person] = 0.0
 
+    
     summary = {
         "total_samples": total_samples,
         "correct_samples": total_correct,
@@ -808,6 +904,7 @@ def main():
         "timing": timing_stats.get_summary()
     }
 
+    
     final_results = {
         "summary": summary,
         "samples": results
@@ -816,16 +913,18 @@ def main():
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(final_results, f, ensure_ascii=False, indent=2)
 
+    
     timing_stats.export_to_json(timing_output_file)
 
-    print(f"\n=== VESUS Emotion Recognition Evaluation Results Summary (Qwen2.5-Omni) ===")
-    print(f"Total samples: {total_samples}")
-    print(f"Overall accuracy: {overall_accuracy:.3f}")
+    
+    print(f"\n=== VESUS情感识别评测结果摘要 (Qwen2.5-Omni) ===")
+    print(f"总样本数: {total_samples}")
+    print(f"总体准确率: {overall_accuracy:.3f}")
     print(f"F1 Score: {emotion_metrics['f1_score']:.4f}")
     print(f"Precision: {emotion_metrics['precision']:.4f}")
     print(f"Recall: {emotion_metrics['recall']:.4f}")
-    print(f"Valid samples: {emotion_metrics['valid_samples']}/{emotion_metrics['total_samples']}")
-    print(f"Emotion-wise accuracy:")
+    print(f"有效样本: {emotion_metrics['valid_samples']}/{emotion_metrics['total_samples']}")
+    print(f"各情感准确率:")
     for emotion, acc in emotion_accuracies.items():
         correct = emotion_stats[emotion]["correct"]
         total = emotion_stats[emotion]["total"]
@@ -834,14 +933,15 @@ def main():
     timing_summary = timing_stats.get_summary()
     overall_summary = timing_summary.get("overall_summary", {})
     timing_sample_count = summary["config"]["timing_sample_count"]
-    print(f"\n=== Timing Statistics (CUDA Events Accurate Measurement) ===")
-    print(f"Timing sample count: {timing_sample_count} (excluding first sample)")
-    print(f"Average inference time: {overall_summary.get('avg_total_time', 0):.4f} seconds")
-    print(f"Average prefill time: {overall_summary.get('avg_prefill_time', 0):.4f} seconds")
-    print(f"Average decode time: {overall_summary.get('avg_decode_time', 0):.4f} seconds")
-    print(f"Average throughput: {overall_summary.get('avg_tokens_per_sec', 0):.2f} tokens/second")
-    print(f"Results saved to: {output_file}")
-    print(f"Timing statistics saved to: {timing_output_file}")
+    print(f"\n=== 时间统计（CUDA Events精确测量） ===")
+    print(f"统计样本数: {timing_sample_count} (排除第一个样本)")
+    print(f"平均推理时间: {overall_summary.get('avg_total_time', 0):.4f}秒")
+    print(f"平均Prefill时间: {overall_summary.get('avg_prefill_time', 0):.4f}秒")
+    print(f"平均Decode时间: {overall_summary.get('avg_decode_time', 0):.4f}秒")
+    print(f"平均吞吐量: {overall_summary.get('avg_tokens_per_sec', 0):.2f} tokens/秒")
+    print(f"结果已保存到: {output_file}")
+    print(f"时间统计已保存到: {timing_output_file}")
 
 if __name__ == "__main__":
     main()
+

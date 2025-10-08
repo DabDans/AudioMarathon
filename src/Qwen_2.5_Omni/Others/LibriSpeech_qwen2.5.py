@@ -25,10 +25,11 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support, cla
 import random
 import jiwer
 
+
 random.seed(42)
 
 def convert_numpy_types(obj):
-    """Recursively convert numpy types to Python native types for JSON compatibility"""
+    """Recursively convert numpy types to Python native types to ensure JSON compatibility"""
     if isinstance(obj, np.integer):
         return int(obj)
     elif isinstance(obj, np.floating):
@@ -44,7 +45,8 @@ def convert_numpy_types(obj):
     else:
         return obj
 
-sys.path.append("/data/to/your/Qwen_2.5_Code/path/")
+
+sys.path.append("/data/to/your/Modeling/path/")
 from modeling_qwen2_5_omni import (
     Qwen2_5OmniForConditionalGeneration,
 )
@@ -52,16 +54,23 @@ from processing_qwen2_5_omni import(
     Qwen2_5OmniProcessor
 )
 
+
 from qwen_omni_utils import process_mm_info
+
 
 _AUDIO_TOKEN_ID = 151646        
 _AUDIO_BOS_TOKEN_ID = 151647      
 _AUDIO_EOS_TOKEN_ID = 151648      
 
+
+
+
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:98"
+
 
 logging.set_verbosity_error()
 warnings.filterwarnings("ignore")
+
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(current_dir)
@@ -83,7 +92,8 @@ class GlobalTimingStats:
         self.first_sample_skipped = False
         
     def add_sample(self, wall_time, prefill_time, total_gpu_time):
-        """Add sample timing record, skip first sample"""
+        """Add sample timing record, skip the first sample"""
+        
         if not self.first_sample_skipped:
             self.first_sample_skipped = True
             return
@@ -97,7 +107,7 @@ class GlobalTimingStats:
         self.timing_records.append(record)
     
     def get_summary(self):
-        """Get statistics summary"""
+        """Get statistical summary"""
         if len(self.timing_records) == 0:
             return {
                 "count": 0,
@@ -119,7 +129,7 @@ class GlobalTimingStats:
         }
     
     def export_to_json(self, output_file):
-        """Export statistics to JSON file - HAD style"""
+        """Export statistical data to JSON file - HAD style"""
         result = {
             "summary": self.get_summary(),
             "detailed_records": self.timing_records
@@ -131,7 +141,7 @@ class GlobalTimingStats:
         return output_file
     
     def export_to_json(self, output_file):
-        """Export statistics to JSON file"""
+        """Export statistical data to JSON file"""
         result = {
             "global_summary": self.get_summary(),
             "detailed_records": self.timing_records
@@ -153,30 +163,37 @@ def load_librispeech_long_dataset(base_dir, split="test-clean"):
     
     print(f"Scanning dataset directory: {split_dir}")
     
+    
     speaker_dirs = sorted([d for d in glob.glob(os.path.join(split_dir, "*")) if os.path.isdir(d)])
     
     for speaker_dir in speaker_dirs:
         speaker_id = os.path.basename(speaker_dir)
+        
         
         chapter_dirs = sorted([d for d in glob.glob(os.path.join(speaker_dir, "*")) if os.path.isdir(d)])
         
         for chapter_dir in chapter_dirs:
             chapter_id = os.path.basename(chapter_dir)
             
+            
             flac_files = sorted(glob.glob(os.path.join(chapter_dir, "*.flac")))
             
             for flac_file in flac_files:
+                
                 base_name = os.path.splitext(os.path.basename(flac_file))[0]
+                
                 
                 txt_file = os.path.join(chapter_dir, f"{base_name}.txt")
                 trans_file = os.path.join(chapter_dir, f"{speaker_id}-{chapter_id}.trans.txt")
                 
                 transcription = None
                 
+                
                 if os.path.exists(txt_file):
                     with open(txt_file, 'r', encoding='utf-8') as f:
                         transcription = f.read().strip()
                 elif os.path.exists(trans_file):
+                    
                     with open(trans_file, 'r', encoding='utf-8') as f:
                         for line in f:
                             if line.startswith(base_name):
@@ -184,6 +201,7 @@ def load_librispeech_long_dataset(base_dir, split="test-clean"):
                                 break
                 
                 if transcription:
+                    
                     try:
                         audio_info = sf.info(flac_file)
                         duration = audio_info.duration
@@ -208,20 +226,24 @@ def load_librispeech_long_dataset(base_dir, split="test-clean"):
     return dataset
 
 def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
-    """Process audio file according to Qwen2.5-Omni requirements"""
+    """Process audio files according to Qwen2.5-Omni requirements"""
     
     try:
+        
         try:
             audio, sr = librosa.load(audio_path, sr=target_sr, mono=True)
-            print(f"Successfully loaded with librosa: shape={audio.shape}, sample_rate={sr}Hz")
+            print(f"Successfully loaded with librosa: shape={audio.shape}, sample rate={sr}Hz")
         except Exception as e:
             print(f"librosa loading failed: {e}")
+            
             
             try:
                 audio, sample_rate = sf.read(audio_path)
                 
+                
                 if len(audio.shape) > 1 and audio.shape[1] > 1:
                     audio = np.mean(audio, axis=1)
+                
                 
                 if sample_rate != target_sr:
                     from scipy import signal
@@ -229,18 +251,21 @@ def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
                     
                 audio = audio.astype(np.float32)
                 sr = target_sr
-                print(f"soundfile processing successful: shape={audio.shape}, sample_rate={sr}Hz")
+                print(f"soundfile processing successful: shape={audio.shape}, sample rate={sr}Hz")
                 
             except Exception as e:
                 print(f"soundfile loading also failed: {e}")
+                
                 audio = np.zeros(target_sr * 3, dtype=np.float32)
                 sr = target_sr
-                print("Generated silence as replacement audio")
+                print("Generating silent replacement audio")
+        
         
         if len(audio) == 0:
-            print("Warning: Audio is empty, creating 3-second silence")
+            print("Warning: Audio is empty, creating 3 seconds of silence")
             audio = np.zeros(target_sr * 3, dtype=np.float32)
             
+        
         audio = audio.astype(np.float32)
         
         return audio
@@ -252,11 +277,12 @@ def prepare_audio_for_qwen_omni(audio_path, target_sr=16000):
         return silence
 
 def librispeech_doc_to_audio(doc):
-    """Load audio data from LibriSpeech document"""
+    """Load audio data from LibriSpeech documents"""
     if "audio" not in doc:
         return None
     
     if doc["audio"]["array"] is None:
+        
         try:
             audio_data = prepare_audio_for_qwen_omni(doc["audio"]["path"])
             doc["audio"]["array"] = audio_data
@@ -268,15 +294,17 @@ def librispeech_doc_to_audio(doc):
     return doc["audio"]["array"], doc["audio"]["sampling_rate"]
 
 def asr_doc_to_text(doc, kwargs=None):
-    """Generate prompt for English ASR task"""
+    """Generate prompts for English ASR tasks"""
     if kwargs is None:
         kwargs = {}
     
     pre_prompt = kwargs.get("pre_prompt", "")
     post_prompt = kwargs.get("post_prompt", "")
     
+    
     instruction = "Transcribe this audio accurately. Remove hesitation words like 'um', 'uh'."
     format_text = "Your response should be formatted as follows: Spoken Content:"
+    
     
     prompt_text = f"{pre_prompt}{instruction} {format_text} <transcribed text here>{post_prompt}"
     
@@ -287,12 +315,14 @@ def clean_response(response):
     if not response or response.strip() == "":
         return ""
     
+    
     for marker in ["spoken content:", "content:", "transcription:", "transcript:"]:
         if marker.lower() in response.lower():
             parts = re.split(re.escape(marker), response, flags=re.IGNORECASE)
             if len(parts) > 1:
                 response = parts[1].strip()
                 break
+    
     
     response = re.sub(r'<transcribed text here>', '', response)
     response = re.sub(r'<sep>.*?($|<|$)', '', response)
@@ -301,14 +331,17 @@ def clean_response(response):
     return response.strip()
 
 def standardize_text(text):
-    """Standardize text for fair comparison and WER calculation"""
+    """Normalize text for fair comparison and WER calculation"""
     if not text:
         return ""
     
+    
     text = text.lower()
+    
     
     text = re.sub(r'[.!?,;:"()\[\]{}]', ' ', text)
     text = re.sub(r'[\-\']', '', text)
+    
     
     text = re.sub(r'\s+', ' ', text).strip()
     
@@ -319,11 +352,13 @@ def calculate_wer(reference, hypothesis):
     try:
         import jiwer
         
+        
         ref_standardized = standardize_text(reference)
         hyp_standardized = standardize_text(hypothesis)
         
         if not ref_standardized or not hyp_standardized:
             return 100.0
+        
         
         wer = jiwer.wer(ref_standardized, hyp_standardized)
         return wer * 100  
@@ -336,7 +371,7 @@ def calculate_wer(reference, hypothesis):
 
 def calculate_librispeech_metrics(references, hypotheses):
     """
-    Simplified LibriSpeech ASR metrics calculation, only computing WER
+    Simplified LibriSpeech ASR metrics calculation, only calculates WER
     
     Args:
         references: List of true transcriptions
@@ -345,6 +380,7 @@ def calculate_librispeech_metrics(references, hypotheses):
     Returns:
         dict: Dictionary containing WER-related metrics
     """
+    
     valid_indices = []
     clean_references = []
     clean_hypotheses = []
@@ -355,6 +391,7 @@ def calculate_librispeech_metrics(references, hypotheses):
             valid_indices.append(i)
             clean_references.append(ref)
             clean_hypotheses.append(hyp)
+            
             
             wer = calculate_wer(ref, hyp)
             wer_scores.append(wer)
@@ -371,12 +408,15 @@ def calculate_librispeech_metrics(references, hypotheses):
             'word_accuracy': 0.0
         }
     
+    
     wer_mean = np.mean(wer_scores)
     wer_std = np.std(wer_scores)
     wer_min = np.min(wer_scores)
     wer_max = np.max(wer_scores)
     
+    
     perfect_predictions = len([wer for wer in wer_scores if wer == 0.0])
+    
     
     word_accuracy = 100.0 - wer_mean
     
@@ -393,40 +433,49 @@ def calculate_librispeech_metrics(references, hypotheses):
     }
 
 def main():
+    
     gpu_temp = os.environ.get("CUDA_VISIBLE_DEVICES")
     gpu_id = gpu_temp[-1] if gpu_temp else "0"
     print(f"Using GPU ID: {gpu_id}")
 
-    prune_layer_idx = int(os.environ.get("PRUNE_LAYER_IDX", 2))
+    
+    prune_layer_idx = int(os.environ.get("PRUNE_LAYER_IDX", 1))
     prune_ratio = float(os.environ.get("PRUNE_RATIO", 0))
     prune_method = os.environ.get("PRUNE_METHOD", "base")
 
+    
     use_random = (prune_method == "random")
     use_frame = (prune_method == "frame")
     if use_random == False and use_frame == False:
         prune_method = "fast_v"
+    
     
     if prune_ratio == 0:
         method_is = "base"
     else:
         method_is = prune_method
 
+    
     sample_limit = int(os.environ.get("SAMPLE_LIMIT", 0))
     if sample_limit > 0:
         print(f"Sample limit set to: {sample_limit}")
 
-    librispeech_path = '/data/to/your/dataset/path//librispeech-long'
+    
+    librispeech_path = '/path/to/your/subsetlibrispeech-long'
     result_dir = os.environ.get("RESULTS_DIR", './LibriSpeech_Results')
+    
     
     librispeech_path = os.path.abspath(librispeech_path)
     result_dir = os.path.abspath(result_dir)
     os.makedirs(result_dir, exist_ok=True)
 
+    
     output_file = f'{result_dir}/librispeech_results_qwen25.json'
     timing_output_file = f'{result_dir}/timing_stats_qwen25_{method_is}_{prune_ratio}.json'
     print(f"Results will be saved to: {output_file}")
     print(f"Timing statistics will be saved to: {timing_output_file}")
 
+    
     timing_stats = GlobalTimingStats()
 
     print(f"\n=== LibriSpeech ASR Evaluation Configuration (Qwen2.5-Omni) ===")
@@ -439,8 +488,9 @@ def main():
         print(f"Sample limit: {sample_limit}")
     print("=" * 40)
 
+    
     print("Loading Qwen2.5-Omni model...")
-    model_path = "/data/to/your/Qwen_2.5_Model/path/"
+    model_path = "/path/to/your/model"
     device_map = {"": 0}  
     
     processor = Qwen2_5OmniProcessor.from_pretrained(
@@ -456,13 +506,17 @@ def main():
     )
     model.disable_talker()
     
+    
     if hasattr(model, 'thinker') and hasattr(model.thinker, 'model') and hasattr(model.thinker.model, 'config'):
         model.thinker.model.config.sparse_attention_config = {'prune_ratio': prune_ratio, 'prune_method': prune_method}
         print(f"Sparse attention config set: prune_ratio={prune_ratio}, prune_method={prune_method}")
     else:
         print("Warning: thinker model config not found, using default parameters")
     
+    
+    
     if hasattr(model, 'thinker') and hasattr(model.thinker, 'model'):
+        
         if not hasattr(model.thinker.model.config, 'image_layer_idx'):
             model.thinker.model.config.image_layer_idx = False
         if not hasattr(model.thinker.model.config, 'audio_layer_idx'):
@@ -477,11 +531,13 @@ def main():
             model.thinker.model.config.random = False
         if not hasattr(model.thinker.model.config, 'frame'):
             model.thinker.model.config.frame = False
-        print(f"Initialized thinker.model.config pruning configuration parameters")
+    print(f"Initializing thinker.model.config pruning configuration parameters")
+    
     
     if torch.cuda.is_available():
         torch.cuda.synchronize()
 
+    
     print(f"Loading LibriSpeech dataset: {librispeech_path}")
     dataset = load_librispeech_long_dataset(librispeech_path, "test-clean")
     
@@ -489,25 +545,29 @@ def main():
         print("Error: Failed to load any data")
         return
     
+    
     if sample_limit > 0 and len(dataset) > sample_limit:
         dataset = dataset[:sample_limit]
-        print(f"Applied sample limit, processing {len(dataset)} samples")
+        print(f"Applying sample limit, processing {len(dataset)} samples")
 
+    
     speaker_stats = defaultdict(int)
     for sample in dataset:
         speaker_id = sample.get("speaker_id", "unknown")
         speaker_stats[speaker_id] += 1
     
-    print(f"Speaker statistics: {len(speaker_stats)} speakers")
+    print(f"Speaker count: {len(speaker_stats)} speakers")
     print(f"Sample distribution: {dict(list(speaker_stats.items())[:5])}...")
 
     results = []
     total_wer = 0.0
     processed_samples = 0
 
+    
     is_screen_env = not sys.stdout.isatty() or 'TERM' in os.environ and os.environ['TERM'] == 'screen'
     if is_screen_env:
         print("Detected screen or non-interactive environment, using simplified progress display")
+    
     
     tqdm_kwargs = {
         'ascii': True,      
@@ -517,27 +577,33 @@ def main():
 
     print(f"Starting evaluation of {len(dataset)} samples...")
     
+    
     allocated, reserved = get_gpu_memory_usage()
     print(f"GPU memory after model loading - Allocated: {allocated:.2f}GB, Reserved: {reserved:.2f}GB")
-    
-    progress_bar = tqdm(enumerate(dataset), total=len(dataset), desc="LibriSpeech ASR Evaluation (Qwen2.5)", **tqdm_kwargs)
+
+    progress_bar = tqdm(enumerate(dataset), total=len(dataset), desc="LibriSpeech ASR evaluation (Qwen2.5)", **tqdm_kwargs)
 
     for idx, doc in progress_bar:
         try:
+            
             audio_data_result = librispeech_doc_to_audio(doc)
             if audio_data_result is None:
                 continue
             
             audio_np, sr = audio_data_result
             
+            
             reference = doc.get("transcription", "")
             speaker_id = doc.get("speaker_id", "unknown")
             
+            
             prompt_text = asr_doc_to_text(doc)
 
+            
             task_instruction = "You are a helpful assistant that transcribes speech audio. Please listen carefully and provide the exact transcription of what is spoken in the audio."
             full_user_prompt = f"{task_instruction}\n\n{prompt_text}"
 
+            
             messages = [
                 {
                     "role": "system",
@@ -554,14 +620,18 @@ def main():
                 }
             ]
             
+            
             audios, images, videos = process_mm_info(messages, use_audio_in_video=True)
+            
             
             text = processor.apply_chat_template(
                 messages, tokenize=False, add_generation_prompt=True
             )
             
+            
             if isinstance(text, list):
                 text = text[0] if len(text) > 0 else ""
+            
             
             inputs = processor(
                 text=text, 
@@ -574,24 +644,30 @@ def main():
             )
             inputs = inputs.to(model.device).to(model.dtype)
             
+            
             audio_token_length = 0
             audio_token_start = 0
             input_token_length = inputs.input_ids.shape[1] if hasattr(inputs, 'input_ids') else 0
             
+            
             audio_detected = False
+            
             
             if hasattr(inputs, 'input_ids'):
                 token_ids = inputs.input_ids[0].tolist()
+                
                 
                 bos_positions = [i for i, tid in enumerate(token_ids) if tid == _AUDIO_BOS_TOKEN_ID]
                 eos_positions = [i for i, tid in enumerate(token_ids) if tid == _AUDIO_EOS_TOKEN_ID]
                 
                 if bos_positions and eos_positions:
+                    
                     audio_token_start = bos_positions[0]
                     audio_token_end = eos_positions[0]
                     audio_token_length = audio_token_end - audio_token_start + 1
                     
                     audio_detected = True
+                    
                     
                     model.thinker.model.config.image_layer_idx = False  
                     model.thinker.model.config.audio_layer_idx = prune_layer_idx
@@ -605,10 +681,12 @@ def main():
                 model.thinker.model.config.audio_layer_idx = None
                 model.thinker.model.config.audio_prune_ratio = 0
 
+            
             prefill_start_event = torch.cuda.Event(enable_timing=True)
             prefill_end_event = torch.cuda.Event(enable_timing=True)
             
             prefill_start_event.record()
+            
             
             audio_tokens = 0
             if hasattr(processor.tokenizer, 'audio_bos_token_id') and hasattr(processor.tokenizer, 'audio_eos_token_id'):
@@ -623,6 +701,7 @@ def main():
                             eos_pos = eos_candidates[0]
                             audio_tokens += eos_pos - bos_pos - 1
                             
+                
                 if hasattr(model, 'thinker') and hasattr(model.thinker, 'model') and hasattr(model.thinker.model, 'config'):
                     if hasattr(model.thinker.model.config, 'sparse_attention_config'):
                         model.thinker.model.config.sparse_attention_config['audio_tokens'] = audio_tokens.item() if hasattr(audio_tokens, 'item') else audio_tokens
@@ -638,6 +717,7 @@ def main():
                 )
             prefill_end_event.record()
             
+            
             decode_start_event = torch.cuda.Event(enable_timing=True)
             decode_end_event = torch.cuda.Event(enable_timing=True)
             
@@ -652,27 +732,33 @@ def main():
             )
             decode_end_event.record()
             
+            
             torch.cuda.synchronize()
             prefill_time = prefill_start_event.elapsed_time(prefill_end_event) / 1000.0  
             decode_time = decode_start_event.elapsed_time(decode_end_event) / 1000.0  
 
+            
             resp = processor.batch_decode(
                 out_ids, 
                 skip_special_tokens=True, 
                 clean_up_tokenization_spaces=False
             )[0]
             
+            
             if "assistant\n" in resp:
+                
                 assistant_start = resp.rfind("assistant\n") + len("assistant\n")
                 resp = resp[assistant_start:].strip()
             
             hypothesis = clean_response(resp)
 
+            
             wer = calculate_wer(reference, hypothesis)
             total_wer += wer
             processed_samples += 1
 
             current_avg_wer = total_wer / processed_samples
+            
             
             update_interval = 10 if is_screen_env else 1
             sample_count = idx + 1
@@ -685,6 +771,7 @@ def main():
                 })
                 
                 if is_screen_env:
+                    
                     print(f"  Progress: {sample_count}/{len(dataset)} ({sample_count/len(dataset)*100:.1f}%), "
                           f"WER: {current_avg_wer:.2f}%")
             else:
@@ -694,6 +781,7 @@ def main():
                     'duration': f'{doc.get("duration", 0):.1f}s'
                 })
 
+            
             results.append({
                 "idx": idx,
                 "id": doc.get("id", f"sample_{idx}"),
@@ -707,33 +795,37 @@ def main():
                 "response_text": resp
             })
 
+            
             wall_time = prefill_time + decode_time
             timing_stats.add_sample(wall_time, prefill_time, wall_time)
 
+            
             torch.cuda.empty_cache()
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
+            
             
             if (idx + 1) % 10 == 0:
                 gc.collect()
                 torch.cuda.empty_cache()
                 torch.cuda.synchronize()
                 
-                if (idx + 1) % 100 == 0:
-                    allocated, reserved = get_gpu_memory_usage()
-                    print(f"  [Sample {idx+1}] GPU memory - Allocated: {allocated:.2f}GB, Reserved: {reserved:.2f}GB")
-            
+                
+
         except Exception as e:
             print(f"Error processing sample {idx}: {e}")
             traceback.print_exc()
+            
             
             torch.cuda.empty_cache()
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
             continue
 
+    
     final_wer = total_wer / processed_samples if processed_samples > 0 else 100.0
 
+    
     speaker_wer = defaultdict(list)
     for result in results:
         speaker_wer[result["speaker_id"]].append(result["wer"])
@@ -742,16 +834,20 @@ def main():
     for speaker_id, wers in speaker_wer.items():
         speaker_avg_wer[speaker_id] = sum(wers) / len(wers)
 
+    
     references = [r["reference"] for r in results]
     hypotheses = [r["hypothesis"] for r in results]
     
+    
     detailed_metrics = calculate_librispeech_metrics(references, hypotheses)
 
+    
     final_results = {
         "model_name": f"Qwen2.5-Omni-3B",
         "dataset": "LibriSpeech",
         "total_samples": len(results),
         "valid_samples": detailed_metrics['valid_samples'],
+        
         
         "wer_mean": detailed_metrics['wer_mean'],
         "word_accuracy": detailed_metrics['word_accuracy'],
@@ -760,10 +856,13 @@ def main():
         "wer_max": detailed_metrics['wer_max'],
         "perfect_predictions": detailed_metrics['perfect_predictions'],
         
+        
         "speaker_count": len(speaker_stats),
         "speaker_wer": speaker_avg_wer,
         
+        
         "timing_stats": timing_stats.get_summary(),
+        
         
         "config": {
             "device": f"cuda:{gpu_id}",
@@ -778,16 +877,20 @@ def main():
             "data_path": librispeech_path
         },
         
+        
         "detailed_results": results
     }
+    
     
     final_results = convert_numpy_types(final_results)
     
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(final_results, f, ensure_ascii=False, indent=2)
 
+    
     timing_stats.export_to_json(timing_output_file)
 
+    
     print(f"\n=== LibriSpeech ASR Evaluation Results Summary (Qwen2.5-Omni) ===")
     print(f"Total samples: {len(results)}")
     print(f"Processed samples: {processed_samples}")
@@ -795,22 +898,23 @@ def main():
     print(f"Word accuracy: {detailed_metrics['word_accuracy']:.2f}%")
     print(f"Number of speakers: {len(speaker_stats)}")
     
+    
     print(f"\n=== WER Statistics ===")
     print(f"WER standard deviation: {detailed_metrics['wer_std']:.2f}%")
     print(f"Minimum WER: {detailed_metrics['wer_min']:.2f}%")
     print(f"Maximum WER: {detailed_metrics['wer_max']:.2f}%")
     print(f"Perfect predictions: {detailed_metrics['perfect_predictions']} ({detailed_metrics['perfect_predictions']/detailed_metrics['valid_samples']*100:.1f}%)")
     
-    print(f"\nTop 5 speakers WER:")
+    print(f"\nTop 5 speakers by WER:")
     for speaker_id, avg_wer in list(speaker_avg_wer.items())[:5]:
         sample_count = speaker_stats[speaker_id]
         print(f"  {speaker_id}: {avg_wer:.2f}% ({sample_count} samples)")
     
     timing_summary = timing_stats.get_summary()
     print(f"\n=== Inference Time Statistics ===")
-    print(f"Statistics sample count: {timing_summary['count']} (excluding first sample)")
+    print(f"Statistical sample count: {timing_summary['count']} (excluding first sample)")
     print(f"Average inference time: {timing_summary['avg_wall_time']:.4f} seconds")
-    print(f"Average prefill time: {timing_summary['avg_prefill_time']:.4f} seconds")
+    print(f"Average Prefill time: {timing_summary['avg_prefill_time']:.4f} seconds")
     print(f"Average total GPU time: {timing_summary['avg_total_gpu_time']:.4f} seconds")
     
     print(f"\nResults saved to: {output_file}")

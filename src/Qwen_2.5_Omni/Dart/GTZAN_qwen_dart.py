@@ -34,7 +34,7 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support, cla
 
 random.seed(42)
 
-sys.path.append("/data/to/your/Qwen_2.5_Code/path/")
+sys.path.append("/data/to/your/Modeling/path/")
 from modeling_qwen2_5_omni_dart import (
     Qwen2_5OmniForConditionalGeneration,
 )

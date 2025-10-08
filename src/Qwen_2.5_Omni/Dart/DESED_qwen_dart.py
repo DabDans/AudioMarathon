@@ -22,7 +22,7 @@ import traceback
 warnings.filterwarnings("ignore")
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:98"
 
-sys.path.append("/data/to/your/Qwen_2.5/folder")
+sys.path.append("/data/to/your/Modeling/folder")
 from modeling_qwen2_5_omni_dart import (
     Qwen2_5OmniForConditionalGeneration,
 )

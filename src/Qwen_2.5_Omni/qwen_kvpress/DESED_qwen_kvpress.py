@@ -907,4 +907,155 @@ def main():
                         "ground_truth": sample["correct_answer"],
                         "prediction": "skip",
                         "raw_response": "audio processing failed",
-                        "task_type": sample.get("
+                        "task_type": sample.get("task_type", "unknown"),
+                        "status": "skipped",
+                        "reason": "audio_processing_failed"
+                    })
+                    continue
+                
+                # Construct question text with choices
+                question_text = (
+                    f"{sample['question']}\n"
+                    f"A. {sample['choice_a']}\n"
+                    f"B. {sample['choice_b']}\n"
+                    f"C. {sample['choice_c']}\n"
+                    f"D. {sample['choice_d']}\n"
+                    f"Answer with only the letter (A, B, C, or D):"
+                )
+                
+                # Create message list
+                messages = [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "audio", "audio": audio_path},
+                            {"type": "text", "text": question_text}
+                        ]
+                    }
+                ]
+                
+                # Prepare model inputs
+                text_input = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                inputs = processor(text=text_input, audios=[audio_path], return_tensors="pt", sampling_rate=16000)
+                inputs = inputs.to(model.device)
+                
+                # Prepare for timing
+                torch.cuda.synchronize()
+                start_time = time.time()
+                
+                # Perform inference with or without compression
+                if press_obj is not None:
+                    with create_kvpress_adapter(model, press_obj):
+                        with torch.no_grad():
+                            outputs = model.generate(
+                                **inputs,
+                                max_new_tokens=args.max_new_tokens,
+                                do_sample=False,
+                                temperature=None,
+                                top_p=None,
+                                use_cache=True
+                            )
+                else:
+                    with torch.no_grad():
+                        outputs = model.generate(
+                            **inputs,
+                            max_new_tokens=args.max_new_tokens,
+                            do_sample=False,
+                            temperature=None,
+                            top_p=None,
+                            use_cache=True
+                        )
+                
+                torch.cuda.synchronize()
+                total_time = time.time() - start_time
+                
+                # Decode response
+                generated_ids = outputs[0][inputs['input_ids'].shape[1]:]
+                response = processor.decode(generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)
+                
+                # Extract answer choice
+                predicted_choice = extract_answer_choice(response)
+                
+                # Evaluate correctness
+                is_correct = evaluate_qa_accuracy(predicted_choice, sample["correct_answer"])
+                
+                if is_correct:
+                    correct_predictions += 1
+                
+                # Get GPU memory stats
+                allocated, reserved = get_gpu_memory_usage()
+                
+                # Record timing stats
+                timing_stats.add_record(
+                    prefill_time=0.0,  # Not separately measured
+                    decode_time=total_time,
+                    output_tokens=len(generated_ids),
+                    input_tokens=inputs['input_ids'].shape[1],
+                    is_correct=is_correct,
+                    peak_memory_gb=allocated,
+                    task_type=sample.get("task_type", "unknown")
+                )
+                
+                # Store results
+                results.append({
+                    "sample_id": idx,
+                    "task_id": sample["task_id"],
+                    "question": sample["question"],
+                    "choices": {
+                        "A": sample["choice_a"],
+                        "B": sample["choice_b"],
+                        "C": sample["choice_c"],
+                        "D": sample["choice_d"]
+                    },
+                    "ground_truth": sample["correct_answer"],
+                    "prediction": predicted_choice,
+                    "raw_response": response,
+                    "is_correct": is_correct,
+                    "task_type": sample.get("task_type", "unknown"),
+                    "inference_time": total_time,
+                    "output_tokens": len(generated_ids),
+                    "input_tokens": inputs['input_ids'].shape[1],
+                    "gpu_memory_gb": allocated
+                })
+                
+                # Clean up
+                del inputs, outputs, generated_ids
+                if idx % 10 == 0:
+                    torch.cuda.empty_cache()
+                    gc.collect()
+                
+            except Exception as e:
+                print(f"Error processing sample {idx}: {e}")
+                traceback.print_exc()
+                results.append({
+                    "sample_id": idx,
+                    "task_id": sample.get("task_id", f"task_{idx}"),
+                    "error": str(e),
+                    "status": "error"
+                })
+                continue
+        
+        # Print final statistics
+        print("\n" + "="*50)
+        print("DESED Evaluation Complete")
+        print("="*50)
+        print(f"Total samples: {len(dataset)}")
+        print(f"Correct predictions: {correct_predictions}")
+        print(f"Accuracy: {correct_predictions / len(dataset):.2%}")
+        
+        # Export timing statistics
+        timing_stats.export_to_json(timing_file)
+        print(f"Timing statistics saved to: {timing_file}")
+        
+        # Export results
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(convert_to_serializable(results), f, indent=2, ensure_ascii=False)
+        print(f"Results saved to: {output_file}")
+        
+    except Exception as e:
+        print(f"Fatal error in main: {e}")
+        traceback.print_exc()
+        raise
+
+if __name__ == "__main__":
+    main()
