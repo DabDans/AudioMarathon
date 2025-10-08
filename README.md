@@ -1,21 +1,22 @@
-<img width="912" height="133" alt="image" src="https://github.com/user-attachments/assets/b5a8554f-db5a-4072-abdc-140fe870c483" /># AudioMarathon: Long-Form Audio Understanding Benchmark
+<!-- <img width="912" height="133" alt="image" src="https://github.com/user-attachments/assets/b5a8554f-db5a-4072-abdc-140fe870c483" /> -->
+# AudioMarathon: A Comprehensive Benchmark for Long-Context Audio Understanding and Efficiency in Audio LLMs
 
 ## 👥 Authors
 
+<div align="center">
 **Peize He**<sup>1*</sup>, **Zichen Wen**<sup>1,2*</sup>, **Yubo Wang**<sup>1*</sup>, **Yuxuan Wang**<sup>1</sup>, **Xiaoqian Liu**<sup>1,3</sup>, <br>
 **Jiajie Huang**<sup>1</sup>, **Zehui Lei**<sup>1</sup>, **Zhuangcheng Gu**<sup>4</sup>, **Xiangqi Jin**<sup>1</sup>, **Jiabing Yang**<sup>5</sup>, <br>
 **Kai Li**<sup>6</sup>, **Zhifei Liu**<sup>1</sup>, **Weijia Li**<sup>7,2</sup>, **Cunxiang Wang**<sup>6</sup>, **Conghui He**<sup>2</sup>, **Linfeng Zhang**<sup>1†</sup>
 
-<sup>1</sup>Shanghai Jiao Tong University  
-<sup>2</sup>Shanghai AI Laboratory  
-<sup>3</sup>Northeastern University
-<sup>4</sup>Carnegie Mellon University  
+<sup>1</sup>Shanghai Jiao Tong University  <sup>2</sup>Shanghai AI Laboratory <sup>3</sup>Northeastern University 
+<sup>4</sup>Carnegie Mellon University  <br>
 <sup>5</sup>University of Chinese Academy of Sciences  
 <sup>6</sup>Tsinghua University  
 <sup>7</sup>Sun Yat-sen University
 
 <sup>*</sup>Equal contribution  
 <sup>†</sup>Corresponding author
+</div>
 
 ---
 
