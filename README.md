@@ -32,10 +32,13 @@
 </h4>
 
 <div align="center">
+
+[![arXiv](https://img.shields.io/badge/arXiv-2510.07293-b31b1b.svg)](https://arxiv.org/abs/2510.07293)
 [![](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FDabDans%2FAudioMarathon&count_bg=%23C25AE6&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Visitor&edge_flat=false)](https://hits.seeyoufarm.com)
 [![GitHub issues](https://img.shields.io/github/issues/DabDans/AudioMarathon?color=critical&label=Issues)](https://github.com/DabDans/AudioMarathon/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/DabDans/AudioMarathon?style=social)](https://github.com/DabDans/AudioMarathon/stargazers)
 [![Dataset](https://img.shields.io/badge/🤗-Dataset-9C276A.svg)](https://huggingface.co/datasets/Hezep/AudioMarathon)
+
 </div>
 <h5 align="center"> If you like our project, please consider giving us a star ⭐ 🥹🙏 </h2>
 
@@ -462,8 +465,15 @@ HAD/
 ## 📄 Citation
 
 If you use AudioMarathon in your research, please cite:
-```bibtex
 
+```bibtex
+@article{he2025audiomarathon,
+  title={AudioMarathon: A Comprehensive Benchmark for Long-Context Audio Understanding and Efficiency in Audio LLMs},
+  author={He, Peize and Wen, Zichen and Wang, Yubo and Wang, Yuxuan and Liu, Xiaoqian and Huang, Jiajie and Lei, Zehui and Gu, Zhuangcheng and Jin, Xiangqi and Yang, Jiabing and Li, Kai and Liu, Zhifei and Li, Weijia and Wang, Cunxiang and He, Conghui and Zhang, Linfeng},
+  journal={arXiv preprint arXiv:2510.07293},
+  year={2025},
+  url={https://arxiv.org/abs/2510.07293}
+}
 ```
 
 
